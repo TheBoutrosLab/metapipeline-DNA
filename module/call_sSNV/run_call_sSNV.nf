@@ -63,6 +63,7 @@ process run_call_sSNV {
         --output_dir \$(pwd) \
         -params-file combined_call_ssnv_params.yaml \
         --dataset_id ${params.project_id} \
+        -profile "${params.containerization_system}" \
         -c ${moduleDir}/default.config ${weblog_args}
 
     capture_exit_code
