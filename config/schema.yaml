@@ -23,6 +23,16 @@ save_intermediate_files:
   required: true
   default: false
   help: 'Whether to save metapipeline intermediate files'
+apptainer_library:
+  type: 'Path'
+  mode: 'r'
+  required: false
+  help: 'Absolute path to Apptainer library directory'
+apptainer_cache:
+  type: 'Path'
+  mode: 'w'
+  required: false
+  help: 'Absolute path to Apptainer cache directory'
 partition:
   type: 'String'
   required: true
