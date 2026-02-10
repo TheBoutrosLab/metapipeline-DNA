@@ -43,6 +43,7 @@ process create_YAML_call_gSNP {
     if (params.sample_mode == 'single') {
         input_map = [
             'patient_id': patient_id,
+            'genetic_sex': sample_info[single_sample_type].genetic_sex,
             'input': [
                 'BAM': [
                     ("${single_sample_type}" as String) : sample_info[single_sample_type].collect{ "${it['bam']}" as String }
@@ -52,6 +53,7 @@ process create_YAML_call_gSNP {
     } else {
         input_map = [
             'patient_id': patient_id,
+            'genetic_sex': sample_info.normal.genetic_sex,
             'input': [
                 'BAM': [
                     'normal': sample_info.normal.collect{ "${it['bam']}" as String },
