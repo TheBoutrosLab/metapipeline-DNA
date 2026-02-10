@@ -59,6 +59,7 @@ process run_recalibrate_BAM {
         --metapipeline_delete_input_bams ${params.enable_input_deletion_recalibrate_bam} \
         --output_dir \$(pwd) \
         --dataset_id ${params.project_id} \
+        -profile "${params.containerization_system}" \
         -c ${moduleDir}/default.config ${weblog_args}
 
     rm -r \$WORK_DIR
