@@ -154,6 +154,8 @@ process call_metapipeline_DNA {
     : "\${CURRENT_WORK_DIR:=`pwd`}"
     : "\${SBATCH_RET:=-1}"
 
+    status_dir_hash=\$(tr -dc A-Za-z0-9 < /dev/urandom | head -c 8)
+
     NXF_WORK=${params.resolved_work_dir} \
     ${projectDir}/templates/nextflow-wrapper run \
         ${moduleDir}/module/metapipeline_DNA.nf \
@@ -166,7 +168,7 @@ process call_metapipeline_DNA {
         --output_dir ${params.final_output_dir} \
         --metapipeline_log_output_dir ${params.log_output_dir} \
         --work_dir ${params.resolved_work_dir} \
-        --pipeline_status_directory ${params.resolved_work_dir}/PIPELINESTATUSDIRECTORY \
+        --pipeline_status_directory "${params.resolved_work_dir}/\${status_dir_hash}/PIPELINESTATUSDIRECTORY" \
         --pipeline_exit_status_directory "\$(pwd)/PIPELINEEXITSTATUS" \
         --override_realignment ${params.override_realignment} \
         --override_recalibrate_bam ${params.override_recalibrate_bam} \
