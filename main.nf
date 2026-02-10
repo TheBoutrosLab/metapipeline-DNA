@@ -90,13 +90,22 @@ process create_config_metapipeline_DNA {
     Map pipeline_interval_params = ['pipeline_interval_params': params.pipeline_interval_params]
 
     Map general_params = [:]
-    ['apptainer_library', 'apptainer_cache'].each{ param_to_check ->
+    List params_to_pass = [
+        'apptainer_library',
+        'apptainer_cache',
+        'pipeline_cpus',
+        'pipeline_memory',
+        'resource_allocation_profile_tag'
+    ]
+    params_to_pass.each{ param_to_check ->
         if (params.containsKey(param_to_check)) {
             general_params[param_to_check] = params[param_to_check]
         }
     }
 
-    json_params = JsonOutput.prettyPrint(JsonOutput.toJson(params.pipeline_params + general_params + sample_data + pipeline_predecessor + pipeline_interval_params))
+    Map passthrough_params = ['passthrough_params': general_params]
+
+    json_params = JsonOutput.prettyPrint(JsonOutput.toJson(params.pipeline_params + passthrough_params + sample_data + pipeline_predecessor + pipeline_interval_params))
     writer = file("${task.workDir}/pipeline_specific_params.json")
     writer.write(json_params)
 }
