@@ -1,6 +1,7 @@
 ---
 input:
   <patient1>:  # Replace key with actual patient ID
+    genetic_sex: <genetic_sex> # XX or XY
     <sample1>:  # Replace key with actual sample ID
       state: <state>  # normal or tumor
       CRAM:
