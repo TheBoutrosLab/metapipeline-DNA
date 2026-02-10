@@ -40,7 +40,7 @@ process run_recalibrate_BAM {
 
     script:
     output_directory = "recalibrate-BAM-*/${sample_id_for_recalibrate}/GATK-*/output"
-    qc_directory = "recalibrate-BAM-*/${sample_id_for_recalibrate}/GATK-*/QC/run_CalculateContamination_GATK"
+    qc_directory = "recalibrate-BAM-*/${sample_id_for_recalibrate}/GATK-*/QC/contamination_qc/run_CalculateContamination_GATK"
     String params_to_dump = combine_input_with_params(params.recalibrate_BAM.metapipeline_arg_map, new File(input_yaml.toRealPath().toString()))
     String weblog_args = generate_weblog_args()
     """
