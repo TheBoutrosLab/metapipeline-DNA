@@ -8,7 +8,7 @@ workflow identify_call_ssnv_outputs {
     main:
     och_call_ssnv.map{ call_ssnv_out ->
         def raw_sample_id = call_ssnv_out[0];
-        def num_algorithms = call_ssnv_out[1].size();
+        def num_algorithms = (call_ssnv_out[1] in List ? call_ssnv_out[1] : [call_ssnv_out[1]]).size();
         def sample_id = sanitize_string(raw_sample_id);
         def ssnv_output_dir = new File(call_ssnv_out[2].toString());
         def ssnv_output_pattern = /(.*)-([\d\.]*)$/;
