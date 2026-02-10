@@ -207,6 +207,9 @@ workflow {
     List input_data = [];
     params.input.each { patient, patient_data ->
         patient_data.each {sample, sample_data ->
+            if (sample == 'genetic_sex') {
+                return;
+            }
             input_data.add(['patient': patient, 'sample': sample]);
         }
     }
