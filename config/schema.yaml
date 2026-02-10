@@ -281,6 +281,11 @@ input:
       required: true
       help: 'Namespace containing information about patient'
       elements:
+        genetic_sex:
+          type: 'String'
+          required: true
+          choices: ['XX', 'XY']
+          help: 'Genetic sex of the patient'
         Sample:
           type: 'SampleNamespace'
           required: true
