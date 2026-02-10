@@ -37,7 +37,7 @@ process run_call_sSNV {
         )
 
     output:
-        tuple val(sample_id), path(output_directory), emit: identify_call_ssnv_out, optional: true
+        tuple val(sample_id), val(algorithm_list), path(output_directory), emit: identify_call_ssnv_out, optional: true
         path "call-sSNV-*/*", optional: true
         path ".command.*"
         val('done'), emit: complete
