@@ -57,7 +57,8 @@ process run_calculate_targeted_coverage {
         -params-file combined_calculate_targeted_coverage_params.yaml \
         --work_dir \$WORK_DIR \
         --output_dir \$(pwd) \
-        --dataset_id ${params.project_id} \
+        --dataset_id ${params.project_id} \ \
+        -profile "${params.containerization_system}" \
         -c ${moduleDir}/default.config ${weblog_args}
 
     capture_exit_code
