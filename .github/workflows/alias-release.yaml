@@ -15,5 +15,5 @@ permissions:
 
 jobs:
   update-alias:
-    uses: uclahs-cds/tool-create-release/.github/workflows/wf-alias-release.yaml@v1
+    uses: theboutroslab/tool-create-release/.github/workflows/wf-alias-release.yaml@v1
     secrets: inherit

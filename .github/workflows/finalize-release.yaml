@@ -18,7 +18,7 @@ permissions:
 jobs:
   finalize-release:
     if: ${{ github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'automation-create-release') }}
-    uses: uclahs-cds/tool-create-release/.github/workflows/wf-finalize-release.yaml@v1
+    uses: theboutroslab/tool-create-release/.github/workflows/wf-finalize-release.yaml@v1
     secrets: inherit
     with:
       draft: false
