@@ -1,5 +1,5 @@
 ---
-name: Build and Deploy Docs
+name: Generate Docs
 
 on:
   workflow_dispatch:
@@ -9,13 +9,11 @@ on:
     tags:
       - 'v[0-9]*'
 
+permissions:
+  contents: write
+
 jobs:
   build:
-    name: Deploy docs
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout main
-        uses: actions/checkout@v6
-
-      - name: Deploy docs
-        uses: uclahs-cds/tool-Nextflow-action/build-and-deploy-docs@v1
+      - uses: theboutroslab/tool-generate-docs@v1
