@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Fixed
 
 - Stalling point in targeted coverage module
+- Stalling point in recalibrate-BAM when running normal-only datasets
 
 ## [7.0.0] - 2025-08-29
 
