@@ -48,7 +48,8 @@ workflow recalibrate_BAM {
                 .set{ collected_input_ch }
 
             collected_input_ch.map{ it ->
-                it['tumor'].eachWithIndex{ sample, sample_index ->
+                def state_key = (it['tumor'].size() == 0) ? "normal" : "tumor";
+                it[state_key].eachWithIndex{ sample, sample_index ->
                     sample['states_to_delete'] = (sample_index == 0) ? ['normal', 'tumor'] : ['tumor'];
                     return sample
                 };
