@@ -1,78 +1,78 @@
 [submodule "external/pipeline-align-DNA"]
 	path = external/pipeline-align-DNA
-	url = git@github.com:uclahs-cds/pipeline-align-DNA.git
+	url = git@github.com:TheBoutrosLab/pipeline-align-DNA.git
 	branch = main
 	ignore = dirty
 [submodule "external/pipeline-call-gSNP"]
 	path = external/pipeline-call-gSNP
-	url = git@github.com:uclahs-cds/pipeline-call-gSNP.git
+	url = git@github.com:TheBoutrosLab/pipeline-call-gSNP.git
 	branch = main
 	ignore = dirty
 [submodule "external/pipeline-convert-BAM2FASTQ"]
 	path = external/pipeline-convert-BAM2FASTQ
-	url = git@github.com:uclahs-cds/pipeline-convert-BAM2FASTQ.git
+	url = git@github.com:TheBoutrosLab/pipeline-convert-BAM2FASTQ.git
 	branch = main
 	ignore = dirty
 [submodule "external/pipeline-call-sSNV"]
 	path = external/pipeline-call-sSNV
-	url = git@github.com:uclahs-cds/pipeline-call-sSNV.git
+	url = git@github.com:TheBoutrosLab/pipeline-call-sSNV.git
 	branch = main
 	ignore = dirty
 [submodule "external/pipeline-call-mtSNV"]
 	path = external/pipeline-call-mtSNV
-	url = git@github.com:uclahs-cds/pipeline-call-mtSNV.git
+	url = git@github.com:TheBoutrosLab/pipeline-call-mtSNV.git
 	branch = main
 	ignore = dirty
 [submodule "external/pipeline-Nextflow-config"]
 	path = external/pipeline-Nextflow-config
-	url = git@github.com:uclahs-cds/pipeline-Nextflow-config.git
+	url = git@github.com:TheBoutrosLab/pipeline-Nextflow-config.git
 	branch = main
 	ignore = dirty
 [submodule "external/pipeline-call-gSV"]
 	path = external/pipeline-call-gSV
-	url = git@github.com:uclahs-cds/pipeline-call-gSV.git
+	url = git@github.com:TheBoutrosLab/pipeline-call-gSV.git
 	branch = main
 	ignore = dirty
 [submodule "external/pipeline-call-sSV"]
 	path = external/pipeline-call-sSV
-	url = git@github.com:uclahs-cds/pipeline-call-sSV.git
+	url = git@github.com:TheBoutrosLab/pipeline-call-sSV.git
 	branch = main
 	ignore = dirty
 [submodule "external/pipeline-Nextflow-module"]
 	path = external/pipeline-Nextflow-module
-	url = git@github.com:uclahs-cds/pipeline-Nextflow-module.git
+	url = git@github.com:TheBoutrosLab/pipeline-Nextflow-module.git
 	branch = main
 	ignore = dirty
 [submodule "external/pipeline-recalibrate-BAM"]
 	path = external/pipeline-recalibrate-BAM
-	url = git@github.com:uclahs-cds/pipeline-recalibrate-BAM.git
+	url = git@github.com:TheBoutrosLab/pipeline-recalibrate-BAM.git
 	branch = main
 	ignore = dirty
 [submodule "external/pipeline-calculate-targeted-coverage"]
 	path = external/pipeline-calculate-targeted-coverage
-	url = git@github.com:uclahs-cds/pipeline-calculate-targeted-coverage.git
+	url = git@github.com:TheBoutrosLab/pipeline-calculate-targeted-coverage.git
 	branch = main
 	ignore = dirty
 [submodule "external/pipeline-call-sCNA"]
 	path = external/pipeline-call-sCNA
-	url = git@github.com:uclahs-cds/pipeline-call-sCNA.git
+	url = git@github.com:TheBoutrosLab/pipeline-call-sCNA.git
 	branch = main
 	ignore = dirty
 [submodule "external/pipeline-generate-SQC-BAM"]
 	path = external/pipeline-generate-SQC-BAM
-	url = git@github.com:uclahs-cds/pipeline-generate-SQC-BAM.git
+	url = git@github.com:TheBoutrosLab/pipeline-generate-SQC-BAM.git
 [submodule "external/pipeline-call-SRC"]
 	path = external/pipeline-call-SRC
-	url = git@github.com:uclahs-cds/pipeline-call-SRC.git
+	url = git@github.com:TheBoutrosLab/pipeline-call-SRC.git
 [submodule "external/pipeline-StableLift"]
 	path = external/pipeline-StableLift
-	url = git@github.com:uclahs-cds/pipeline-StableLift.git
+	url = git@github.com:TheBoutrosLab/pipeline-StableLift.git
 [submodule "external/pipeline-annotate-VCF"]
 	path = external/pipeline-annotate-VCF
-	url = git@github.com:uclahs-cds/pipeline-annotate-VCF.git
+	url = git@github.com:TheBoutrosLab/pipeline-annotate-VCF.git
 [submodule "external/pipeline-call-GeneticAncestry"]
 	path = external/pipeline-call-GeneticAncestry
-	url = git@github.com:uclahs-cds/pipeline-call-GeneticAncestry.git
+	url = git@github.com:TheBoutrosLab/pipeline-call-GeneticAncestry.git
 [submodule "external/pipeline-calculate-mtDNA-CopyNumber"]
 	path = external/pipeline-calculate-mtDNA-CopyNumber
-	url = git@github.com:uclahs-cds/pipeline-calculate-mtDNA-CopyNumber.git
+	url = git@github.com:TheBoutrosLab/pipeline-calculate-mtDNA-CopyNumber.git

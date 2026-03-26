@@ -50,6 +50,7 @@ process call_align_DNA {
         --spark_temp_dir \$WORK_DIR \
         --input_csv ${input_csv} \
         --dataset_id ${params.project_id} \
+        -profile "${params.containerization_system}" \
         -c ${moduleDir}/default.config ${weblog_args}
 
     rm -r \$WORK_DIR

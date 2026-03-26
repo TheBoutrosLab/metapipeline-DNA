@@ -45,6 +45,7 @@ process run_call_mtSNV {
         --output_dir \$(pwd) \
         --patient_id ${params.patient} \
         --dataset_id ${params.project_id} \
+        -profile "${params.containerization_system}" \
         -c ${moduleDir}/default.config ${weblog_args}
 
     capture_exit_code

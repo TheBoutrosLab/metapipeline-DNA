@@ -52,7 +52,7 @@ workflow call_gSNP {
                 .map{ it ->
                     def samples = [];
                     params.sample_data.each { s, s_data ->
-                        samples.add(['patient': s_data['patient'], 'sample': s, 'state': s_data['state'], 'bam': s_data['recalibrate-BAM']['BAM']]);
+                        samples.add(['patient': s_data['patient'], 'genetic_sex': s_data['genetic_sex'], 'sample': s, 'state': s_data['state'], 'bam': s_data['recalibrate-BAM']['BAM']]);
                     };
                     return samples
                 }

@@ -58,6 +58,7 @@ process run_calculate_targeted_coverage {
         --work_dir \$WORK_DIR \
         --output_dir \$(pwd) \
         --dataset_id ${params.project_id} \
+        -profile "${params.containerization_system}" \
         -c ${moduleDir}/default.config ${weblog_args}
 
     capture_exit_code

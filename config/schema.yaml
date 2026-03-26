@@ -23,10 +23,31 @@ save_intermediate_files:
   required: true
   default: false
   help: 'Whether to save metapipeline intermediate files'
+pipeline_cpus:
+  type: 'Integer'
+  required: false
+  help: 'CPU setting to provide to pipelines for resource allocation handling'
+pipeline_memory:
+  type: 'NextflowMemory'
+  required: false
+  help: 'Memory setting to provide to pipelines for resource allocation handling'
+resource_allocation_profile_tag:
+  type: 'String'
+  required: false
+  help: 'Resource allocation tag to provide to pipelines for resource allocation handling'
+apptainer_library:
+  type: 'Path'
+  mode: 'r'
+  required: false
+  help: 'Absolute path to Apptainer library directory'
+apptainer_cache:
+  type: 'Path'
+  mode: 'w'
+  required: false
+  help: 'Absolute path to Apptainer cache directory'
 partition:
   type: 'String'
   required: true
-  choices: ['F16', 'F32', 'F72', 'F72_3TB']
   help: 'Partition type to submit jobs to'
 clusterOptions:
   type: 'String'
@@ -260,6 +281,11 @@ input:
       required: true
       help: 'Namespace containing information about patient'
       elements:
+        genetic_sex:
+          type: 'String'
+          required: true
+          choices: ['XX', 'XY']
+          help: 'Genetic sex of the patient'
         Sample:
           type: 'SampleNamespace'
           required: true
