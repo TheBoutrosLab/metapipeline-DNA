@@ -53,7 +53,7 @@ workflow calculate_targeted_coverage {
         }
 
         if (!params.calculate_targeted_coverage.is_pipeline_enabled) {
-            modification_signal.until{ it == 'done' }
+            modification_signal.until{ it == 'done' }.ifEmpty('done')
                 .mix(ich)
                 .collect()
                 .map{ 'done' }

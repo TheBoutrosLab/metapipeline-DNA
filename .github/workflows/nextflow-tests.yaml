@@ -1,0 +1,21 @@
+---
+name: Nextflow config tests
+
+on:
+  workflow_run:
+    workflows: [Trigger Tests]
+    types:
+      - completed
+
+permissions:
+  actions: read
+  contents: write
+  packages: read
+  pull-requests: write
+  statuses: write
+
+jobs:
+  tests:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: theboutroslab/tool-Nextflow-action/.github/workflows/nextflow-tests.yml@v1
+    secrets: inherit

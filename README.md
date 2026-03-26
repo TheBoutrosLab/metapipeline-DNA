@@ -1,6 +1,6 @@
 # metapipeline-DNA
 
-[![GitHub release](https://img.shields.io/github/v/release/uclahs-cds/metapipeline-DNA)](https://github.com/uclahs-cds/metapipeline-DNA/actions/workflows/prepare-release.yaml)
+[![GitHub release](https://img.shields.io/github/v/release/theboutroslab/metapipeline-DNA)](https://github.com/theboutroslab/metapipeline-DNA/actions/workflows/prepare-release.yaml)
 
 - [metapipeline-DNA](#metapipeline-dna)
   - [Overview](#overview)
@@ -69,7 +69,7 @@ nextflow run \
     -c /path/to/generated/config
 ```
 
-**Note**: UCLAHS-CDS users, submit the pipeline using the [submission script](https://github.com/uclahs-cds/tool-submit-nf).
+**Note**: UCLAHS-CDS users, submit the pipeline using the [submission script](https://github.com/theboutroslab/tool-submit-nf).
 
 > **warning**: A low-resource partition (*e.g* F2 with 2 CPUs and 4GB of memory) is sufficient for the leading job.
 
@@ -375,15 +375,15 @@ Outputs will be placed under `<params.output_dir>/metapipeline-DNA-<version>/<pa
 
 ## Discussions
 
-- [Issue tracker](https://github.com/uclahs-cds/metapipeline-DNA/issues) to report errors and enhancement ideas.
-- Discussions can take place in [metapipeline-DNA Discussions](https://github.com/uclahs-cds/metapipeline-DNA/discussions)
-- [metapipeline-DNA pull requests](https://github.com/uclahs-cds/metapipeline-DNA/pulls) are also open for discussion
+- [Issue tracker](https://github.com/theboutroslab/metapipeline-DNA/issues) to report errors and enhancement ideas.
+- Discussions can take place in [metapipeline-DNA Discussions](https://github.com/theboutroslab/metapipeline-DNA/discussions)
+- [metapipeline-DNA pull requests](https://github.com/theboutroslab/metapipeline-DNA/pulls) are also open for discussion
 
 ---
 
 ## Contributors
 
-Please see list of [Contributors](https://github.com/uclahs-cds/metapipeline-DNA/graphs/contributors) at GitHub.
+Please see list of [Contributors](https://github.com/theboutroslab/metapipeline-DNA/graphs/contributors) at GitHub.
 
 ---
 
