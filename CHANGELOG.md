@@ -13,6 +13,20 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Support for profiles
 
+### Changed
+
+- align-DNA: `v11.0.0`
+- recalibrate-BAM: `v2.0.0`
+- call-gSNP:: `v11.1.0`
+- generate-SQC-BAM: `v1.2.0`
+- calculate-targeted-coverage: `v2.0.0`
+- calculate-mtDNA-CopyNumber: `latest`
+- StableLift: `latest`
+- call-mtSNV: `v6.0.0`
+- call-sSNV: `v9.0.0`
+- call-sSV: `v8.0.0`
+- call-gSV: `v5.4.0`
+
 ### Fixed
 
 - Stalling point in targeted coverage module
