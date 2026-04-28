@@ -21,6 +21,7 @@ workflow identify_call_ssnv_outputs {
             'Strelka2': ['Strelka2', "Strelka2-*${sample_id}*SNV.vcf.gz"],
             'SomaticSniper': ['SomaticSniper', "SomaticSniper-*${sample_id}*SNV.vcf.gz"],
             'MuSE': ['MuSE', "MuSE-*${sample_id}*SNV.vcf.gz"],
+            'DeepSomatic': ['DeepSomatic', "DeepSomatic-*${sample_id}*SNV-split.vcf.gz"],
             'Intersect-BCFtools': ['BCFtools-Intersect', "BCFtools-*${sample_id}*SNV-concat.vcf.gz"]
         ];
 
