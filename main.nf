@@ -95,7 +95,8 @@ process create_config_metapipeline_DNA {
         'apptainer_cache',
         'pipeline_cpus',
         'pipeline_memory',
-        'resource_allocation_profile_tag'
+        'resource_allocation_profile_tag',
+        'ucla_cds'
     ]
     params_to_pass.each{ param_to_check ->
         if (params.containsKey(param_to_check)) {
