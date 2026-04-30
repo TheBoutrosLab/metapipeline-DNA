@@ -78,10 +78,11 @@ workflow call_sSNV {
             ich.map{ it -> it.tumor }.flatten().unique{ [it.patient, it.sample, it.state] }.set{ input_ch_tumor }
 
             if (params.sample_mode == 'single') {
-                // Only Mutect2 supports tumor-only calling
-                if ('mutect2' in params.call_sSNV.algorithm) {
+                // Only Mutect2 and DeepSomatic support tumor-only calling
+                if ('mutect2' in params.call_sSNV.algorithm || 'deepsomatic' in params.call_sSNV.algorithm) {
+
                     input_ch_tumor
-                        .map{ [it['sample'], [['NO_ID', 'NO_BAM.bam']], [[it['sample'], file(it['bam']).toRealPath()]], 'mutect2'] }
+                        .map{ [it['sample'], [['NO_ID', 'NO_BAM.bam']], [[it['sample'], file(it['bam']).toRealPath()]], params.call_sSNV.algorithm.findAll{ it == 'mutect2' || it == 'deepsomatic' }.unique()] }
                         .set{ input_ch_tumor_only }
                 } else {
                     Channel.empty().set{ input_ch_tumor_only }

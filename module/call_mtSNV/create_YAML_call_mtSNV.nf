@@ -41,7 +41,9 @@ process create_YAML_call_mtSNV {
     if (params.sample_mode == 'single') {
         input_map = [
             'input': [
-                ("${single_sample_type}" as String): ['BAM': sample_info[single_sample_type]['bam'][0] as String]
+                'BAM': [
+                    ("${single_sample_type}" as String): ['path': sample_info[single_sample_type]['bam'][0] as String, 'sample_id': mtsnv_sample_id]
+                ]
             ]
         ]
     } else {
@@ -49,7 +51,7 @@ process create_YAML_call_mtSNV {
             'input': [
                 'BAM': [
                     'normal': ['path': sample_info.normal.bam[0] as String, 'sample_id': sample_info.normal.sample[0] as String],
-                    'tumor': ['path': sample_info.tumor.bam[0] as String, 'sample_id': sample_info.tumor.sample[0]]
+                    'tumor': ['path': sample_info.tumor.bam[0] as String, 'sample_id': sample_info.tumor.sample[0] as String]
                 ]
             ]
         ]

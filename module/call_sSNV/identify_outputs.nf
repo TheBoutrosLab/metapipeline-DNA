@@ -8,8 +8,9 @@ workflow identify_call_ssnv_outputs {
     main:
     och_call_ssnv.map{ call_ssnv_out ->
         def raw_sample_id = call_ssnv_out[0];
+        def num_algorithms = (call_ssnv_out[1] in List ? call_ssnv_out[1] : [call_ssnv_out[1]]).size();
         def sample_id = sanitize_string(raw_sample_id);
-        def ssnv_output_dir = new File(call_ssnv_out[1].toString());
+        def ssnv_output_dir = new File(call_ssnv_out[2].toString());
         def ssnv_output_pattern = /(.*)-([\d\.]*)$/;
         if (sample_id == params.patient) { // Output from multi-mode, skip
             return 'done';
@@ -20,6 +21,7 @@ workflow identify_call_ssnv_outputs {
             'Strelka2': ['Strelka2', "Strelka2-*${sample_id}*SNV.vcf.gz"],
             'SomaticSniper': ['SomaticSniper', "SomaticSniper-*${sample_id}*SNV.vcf.gz"],
             'MuSE': ['MuSE', "MuSE-*${sample_id}*SNV.vcf.gz"],
+            'DeepSomatic': ['DeepSomatic', "DeepSomatic-*${sample_id}*SNV-split.vcf.gz"],
             'Intersect-BCFtools': ['BCFtools-Intersect', "BCFtools-*${sample_id}*SNV-concat.vcf.gz"]
         ];
 
@@ -34,6 +36,9 @@ workflow identify_call_ssnv_outputs {
         }
 
         outputs_to_check.each { output_tool, output_dir_name ->
+            if (output_tool == 'Intersect-BCFtools' && num_algorithms == 1) {
+                return; // Skip intersection output VCF search if only 1 algorithm run
+            }
             params.sample_data[raw_sample_id]['call-sSNV'][output_info[output_tool][0]] = identify_file("${ssnv_output_dir}/${output_dir_name}/output/${output_info[output_tool][1]}");
         }
 

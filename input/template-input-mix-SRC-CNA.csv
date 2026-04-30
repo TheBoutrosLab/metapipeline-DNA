@@ -1,4 +1,4 @@
-patient,sample,state,path,src_input_type,src_input_algorithm,src_path
-patient1,sample2,tumor,/path/to/bam,,,
-patient1,sample2,tumor,,CNA,Battenberg,/path/to/CNA/calls_battenbergsubclones
-patient1,sample2,tumor,,CNA,Battenberg,/path/to/CNA/calls_battenbergploidy
+patient,sample,genetic_sex,state,path,src_input_type,src_input_algorithm,src_path
+patient1,sample2,XX,tumor,/path/to/bam,,,
+patient1,sample2,XX,tumor,,CNA,Battenberg,/path/to/CNA/calls_battenbergsubclones
+patient1,sample2,XX,tumor,,CNA,Battenberg,/path/to/CNA/calls_battenbergploidy

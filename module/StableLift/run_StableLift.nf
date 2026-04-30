@@ -60,6 +60,7 @@ process run_StableLift {
         --dataset_id ${params.project_id} \
         --rf_model "${rf_model}" \
         --variant_caller "${tool}" \
+        -profile "${params.containerization_system}" \
         -c ${moduleDir}/default.config ${weblog_args}
 
     capture_exit_code

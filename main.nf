@@ -88,7 +88,25 @@ process create_config_metapipeline_DNA {
     Map sample_data = ['sample_data': params.sample_data.findAll{ sample, sample_vals -> filtering_criteria(sample, sample_vals) }]
     Map pipeline_predecessor = ['pipeline_predecessor': params.pipeline_predecessor]
     Map pipeline_interval_params = ['pipeline_interval_params': params.pipeline_interval_params]
-    json_params = JsonOutput.prettyPrint(JsonOutput.toJson(params.pipeline_params + sample_data + pipeline_predecessor + pipeline_interval_params))
+
+    Map general_params = [:]
+    List params_to_pass = [
+        'apptainer_library',
+        'apptainer_cache',
+        'pipeline_cpus',
+        'pipeline_memory',
+        'resource_allocation_profile_tag',
+        'ucla_cds'
+    ]
+    params_to_pass.each{ param_to_check ->
+        if (params.containsKey(param_to_check)) {
+            general_params[param_to_check] = params[param_to_check]
+        }
+    }
+
+    Map passthrough_params = ['passthrough_params': general_params]
+
+    json_params = JsonOutput.prettyPrint(JsonOutput.toJson(params.pipeline_params + passthrough_params + sample_data + pipeline_predecessor + pipeline_interval_params))
     writer = file("${task.workDir}/pipeline_specific_params.json")
     writer.write(json_params)
 }
@@ -137,6 +155,8 @@ process call_metapipeline_DNA {
     : "\${CURRENT_WORK_DIR:=`pwd`}"
     : "\${SBATCH_RET:=-1}"
 
+    status_dir_hash=\$(tr -dc A-Za-z0-9 < /dev/urandom | head -c 8)
+
     NXF_WORK=${params.resolved_work_dir} \
     ${projectDir}/templates/nextflow-wrapper run \
         ${moduleDir}/module/metapipeline_DNA.nf \
@@ -149,7 +169,7 @@ process call_metapipeline_DNA {
         --output_dir ${params.final_output_dir} \
         --metapipeline_log_output_dir ${params.log_output_dir} \
         --work_dir ${params.resolved_work_dir} \
-        --pipeline_status_directory ${params.resolved_work_dir}/PIPELINESTATUSDIRECTORY \
+        --pipeline_status_directory "${params.resolved_work_dir}/\${status_dir_hash}/PIPELINESTATUSDIRECTORY" \
         --pipeline_exit_status_directory "\$(pwd)/PIPELINEEXITSTATUS" \
         --override_realignment ${params.override_realignment} \
         --override_recalibrate_bam ${params.override_recalibrate_bam} \
@@ -157,6 +177,7 @@ process call_metapipeline_DNA {
         --normal_sample_count ${params.sample_counts[patient]['normal']} \
         --tumor_sample_count ${params.sample_counts[patient]['tumor']} \
         --use_original_intervals ${params.use_original_intervals} \
+        --containerization_system "${params.containerization_system}" \
         --task_hash \$(pwd | rev | cut -d '/' -f 1,2 | rev | sed 's/\\//_/') \
         --src_snv_tool ${params.src_snv_tool} \
         --src_cna_tool ${params.src_cna_tool} \
@@ -187,6 +208,9 @@ workflow {
     List input_data = [];
     params.input.each { patient, patient_data ->
         patient_data.each {sample, sample_data ->
+            if (sample == 'genetic_sex') {
+                return;
+            }
             input_data.add(['patient': patient, 'sample': sample]);
         }
     }
