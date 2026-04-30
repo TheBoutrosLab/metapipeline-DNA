@@ -476,7 +476,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 [6.0.0-rc.2]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v6.0.0-rc.1...v6.0.0-rc.2
 [6.0.0-rc.3]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v6.0.0-rc.2...v6.0.0-rc.3
 [6.0.0-rc.4]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v6.0.0-rc.3...v6.0.0-rc.4
-[6.0.0-rc.5]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v6.0.0-rc.5...v6.0.0-rc.5
+[6.0.0-rc.5]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v6.0.0-rc.4...v6.0.0-rc.5
 [6.0.0-rc.6]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v6.0.0-rc.5...v6.0.0-rc.6
 [6.1.0]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v6.0.0...v6.1.0
 [6.2.0]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v6.1.0...v6.2.0
