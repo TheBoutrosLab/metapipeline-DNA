@@ -6,8 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
-## [Unreleased]
+## [8.0.0] - 2026-04-30
 
 ### Added
 
@@ -450,38 +449,39 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Remove carriage-return/Windows-specific characters from input examples
 
-[1.0.0]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v1.0.0-rc.1...v1.0.0
-[1.0.0-rc.1]: https://github.com/uclahs-cds/metapipeline-DNA/releases/tag/v1.0.0-rc.1
-[2.0.0]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v2.0.0-rc.1...v2.0.0
-[2.0.0-rc.1]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v1.0.0...v2.0.0-rc.1
-[3.0.0]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v3.0.0-rc.1...v3.0.0
-[3.0.0-rc.1]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v2.0.0...v3.0.0-rc.1
-[4.0.0]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v3.0.0...v4.0.0
-[5.0.0]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v5.0.0-rc.10...v5.0.0
-[5.0.0-rc.1]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v4.0.0...v5.0.0-rc.1
-[5.0.0-rc.10]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v5.0.0-rc.9...v5.0.0-rc.10
-[5.0.0-rc.2]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v5.0.0-rc.1...v5.0.0-rc.2
-[5.0.0-rc.3]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v5.0.0-rc.2...v5.0.0-rc.3
-[5.0.0-rc.4]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v5.0.0-rc.3...v5.0.0-rc.4
-[5.0.0-rc.5]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v5.0.0-rc.4...v5.0.0-rc.5
-[5.0.0-rc.6]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v5.0.0-rc.5...v5.0.0-rc.6
-[5.0.0-rc.7]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v5.0.0-rc.6...v5.0.0-rc.7
-[5.0.0-rc.8]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v5.0.0-rc.7...v5.0.0-rc.8
-[5.0.0-rc.9]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v5.0.0-rc.8...v5.0.0-rc.9
-[5.1.0]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v5.0.0...v5.1.0
-[5.2.0]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v5.1.0...v5.2.0
-[5.2.1]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v5.2.0...v5.2.1
-[5.3.1]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v5.2.1...v5.3.1
-[6.0.0]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v6.0.0-rc.6...v6.0.0
-[6.0.0-rc.1]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v5.3.1...v6.0.0-rc.1
-[6.0.0-rc.2]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v6.0.0-rc.1...v6.0.0-rc.2
-[6.0.0-rc.3]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v6.0.0-rc.2...v6.0.0-rc.3
-[6.0.0-rc.4]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v6.0.0-rc.3...v6.0.0-rc.4
-[6.0.0-rc.5]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v6.0.0-rc.5...v6.0.0-rc.5
-[6.0.0-rc.6]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v6.0.0-rc.5...v6.0.0-rc.6
-[6.1.0]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v6.0.0...v6.1.0
-[6.2.0]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v6.1.0...v6.2.0
-[7.0.0]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v7.0.0-rc.4...v7.0.0
-[7.0.0-rc.1]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v6.2.0...v7.0.0-rc.1
-[7.0.0-rc.3]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v7.0.0-rc.1...v7.0.0-rc.3
-[7.0.0-rc.4]: https://github.com/uclahs-cds/metapipeline-DNA/compare/v7.0.0-rc.3...v7.0.0-rc.4
+[1.0.0]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v1.0.0-rc.1...v1.0.0
+[1.0.0-rc.1]: https://github.com/TheBoutrosLab/metapipeline-DNA/releases/tag/v1.0.0-rc.1
+[2.0.0]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v2.0.0-rc.1...v2.0.0
+[2.0.0-rc.1]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v1.0.0...v2.0.0-rc.1
+[3.0.0]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v3.0.0-rc.1...v3.0.0
+[3.0.0-rc.1]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v2.0.0...v3.0.0-rc.1
+[4.0.0]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v3.0.0...v4.0.0
+[5.0.0]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v5.0.0-rc.10...v5.0.0
+[5.0.0-rc.1]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v4.0.0...v5.0.0-rc.1
+[5.0.0-rc.10]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v5.0.0-rc.9...v5.0.0-rc.10
+[5.0.0-rc.2]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v5.0.0-rc.1...v5.0.0-rc.2
+[5.0.0-rc.3]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v5.0.0-rc.2...v5.0.0-rc.3
+[5.0.0-rc.4]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v5.0.0-rc.3...v5.0.0-rc.4
+[5.0.0-rc.5]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v5.0.0-rc.4...v5.0.0-rc.5
+[5.0.0-rc.6]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v5.0.0-rc.5...v5.0.0-rc.6
+[5.0.0-rc.7]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v5.0.0-rc.6...v5.0.0-rc.7
+[5.0.0-rc.8]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v5.0.0-rc.7...v5.0.0-rc.8
+[5.0.0-rc.9]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v5.0.0-rc.8...v5.0.0-rc.9
+[5.1.0]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v5.0.0...v5.1.0
+[5.2.0]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v5.1.0...v5.2.0
+[5.2.1]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v5.2.0...v5.2.1
+[5.3.1]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v5.2.1...v5.3.1
+[6.0.0]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v6.0.0-rc.6...v6.0.0
+[6.0.0-rc.1]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v5.3.1...v6.0.0-rc.1
+[6.0.0-rc.2]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v6.0.0-rc.1...v6.0.0-rc.2
+[6.0.0-rc.3]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v6.0.0-rc.2...v6.0.0-rc.3
+[6.0.0-rc.4]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v6.0.0-rc.3...v6.0.0-rc.4
+[6.0.0-rc.5]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v6.0.0-rc.4...v6.0.0-rc.5
+[6.0.0-rc.6]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v6.0.0-rc.5...v6.0.0-rc.6
+[6.1.0]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v6.0.0...v6.1.0
+[6.2.0]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v6.1.0...v6.2.0
+[7.0.0]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v7.0.0-rc.4...v7.0.0
+[7.0.0-rc.1]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v6.2.0...v7.0.0-rc.1
+[7.0.0-rc.3]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v7.0.0-rc.1...v7.0.0-rc.3
+[7.0.0-rc.4]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v7.0.0-rc.3...v7.0.0-rc.4
+[8.0.0]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v7.0.0...v8.0.0
