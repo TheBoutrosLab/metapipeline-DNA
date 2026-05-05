@@ -28,7 +28,7 @@ process call_convert_BAM2FASTQ {
             val(patient),
             val(sample),
             val(state),
-            path("convert-BAM2FASTQ-*/*/*/output/*.fastq.gz"),
+            path("convert-BAM2FASTQ-*/*/*/output/*/*.fastq.gz"),
             path(output_directory)
         )
         path "convert-BAM2FASTQ-*/*"
