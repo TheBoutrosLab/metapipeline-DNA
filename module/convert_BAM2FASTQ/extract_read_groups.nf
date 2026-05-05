@@ -2,7 +2,7 @@
 process extract_read_groups {
     container "quay.io/biocontainers/pysam:0.16.0.1--py38hf7546f9_3"
 
-    containerOptions "-v ${moduleDir}:${moduleDir}"
+    containerOptions "${params.container_mount_flag} ${moduleDir}:${moduleDir}"
 
     publishDir path: "${params.log_output_dir}/process-log",
         mode: "copy",
