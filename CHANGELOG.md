@@ -10,7 +10,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
-- Support for setting Apptainer cache and library directories at metapipeline runner level processes
+- Support setting Apptainer cache and library directories for metapipeline runner-level processes
 
 ### Changed
 
