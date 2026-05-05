@@ -8,6 +8,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+
+- Support for setting Apptainer cache and library directories at metapipeline runner level processes
+
 ### Changed
 
 - convert-BAM2FASTQ: `v1.0.0`
