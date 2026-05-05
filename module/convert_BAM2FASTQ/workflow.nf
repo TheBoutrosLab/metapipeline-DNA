@@ -33,9 +33,9 @@ workflow convert_BAM2FASTQ {
         create_YAML_convert_BAM2FASTQ(ich)
         call_convert_BAM2FASTQ(create_YAML_convert_BAM2FASTQ.out.convert_bam2fastq_yaml)
 
-        data_ch = call_convert_BAM2FASTQ.out[0].map { [it[1], it] }
-            .join(extract_read_groups.out[0].map { [it[1], it] })
-            .map { tuple(it[1][0], it[1][1], it[1][2], it[2][3], it[1][4]) }
+        data_ch = call_convert_BAM2FASTQ.out[0].map { [it[1], it] } // [sample, pipeline_out_data]
+            .join(extract_read_groups.out[0].map { [it[1], it] }) // [sample, pipeline_out_data, extract_rg_data]
+            .map { tuple(it[1][0], it[1][1], it[1][2], it[2][3], it[1][4]) } // [patient, sample, state, rg_csv, output dir]
 
         identify_convert_bam2fastq_outputs(data_ch)
 
