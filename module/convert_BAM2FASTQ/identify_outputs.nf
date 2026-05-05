@@ -19,8 +19,8 @@ workflow identify_convert_bam2fastq_outputs {
                     'platform_unit': rg_info[4],
                     'sample': rg_info[5],
                     'lane': rg_info[6],
-                    'read1_fastq': identify_file("${bam2fastq_out[4]}/SAMtools-*${sanitize_string(rg_info[0])}*R1.fastq.gz"),
-                    'read2_fastq': identify_file("${bam2fastq_out[4]}/SAMtools-*${sanitize_string(rg_info[0])}*R2.fastq.gz")
+                    'read1_fastq': identify_file("${bam2fastq_out[4]}/${rg_info[2]}/SAMtools-*${sanitize_string(rg_info[0])}*R1.fastq.gz"),
+                    'read2_fastq': identify_file("${bam2fastq_out[4]}/${rg_info[2]}/SAMtools-*${sanitize_string(rg_info[0])}*R2.fastq.gz")
                 ]
             );
 
