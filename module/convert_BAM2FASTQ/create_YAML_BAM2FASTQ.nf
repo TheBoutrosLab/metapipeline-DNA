@@ -14,7 +14,7 @@ process create_YAML_convert_BAM2FASTQ {
         mode: "copy"
 
     input:
-        tuple val(patient), val(sample), val(state), path(bam)
+        tuple val(patient), val(sample), val(state), val(bam)
 
     output:
         tuple val(patient), val(sample), val(state), path(input_yaml), emit: convert_bam2fastq_yaml
