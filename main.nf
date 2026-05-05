@@ -178,6 +178,7 @@ process call_metapipeline_DNA {
         --tumor_sample_count ${params.sample_counts[patient]['tumor']} \
         --use_original_intervals ${params.use_original_intervals} \
         --containerization_system "${params.containerization_system}" \
+        -profile "${params.containerization_system}" \
         --task_hash \$(pwd | rev | cut -d '/' -f 1,2 | rev | sed 's/\\//_/') \
         --src_snv_tool ${params.src_snv_tool} \
         --src_cna_tool ${params.src_cna_tool} \

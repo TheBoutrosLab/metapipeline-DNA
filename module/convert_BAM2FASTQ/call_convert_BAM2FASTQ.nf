@@ -20,7 +20,7 @@ process call_convert_BAM2FASTQ {
             val(patient),
             val(sample),
             val(state),
-            path(input_csv)
+            path(input_yaml)
         )
 
     output:
@@ -28,15 +28,15 @@ process call_convert_BAM2FASTQ {
             val(patient),
             val(sample),
             val(state),
-            path("convert-BAM2FASTQ-*/*/*/output/*.fastq.gz"),
+            path("convert-BAM2FASTQ-*/*/*/output/*/*.fastq.gz"),
             path(output_directory)
         )
         path "convert-BAM2FASTQ-*/*"
         path ".command.*"
-        
+
     script:
     output_directory = "convert-BAM2FASTQ-*/${sample}/SAMtools-*/output"
-    String params_to_dump = combine_input_with_params(params.convert_BAM2FASTQ.metapipeline_arg_map)
+    String params_to_dump = combine_input_with_params(params.convert_BAM2FASTQ.metapipeline_arg_map, new File(input_yaml.toRealPath().toString()))
     String weblog_args = generate_weblog_args()
     """
     set -euo pipefail
@@ -45,14 +45,14 @@ process call_convert_BAM2FASTQ {
 
     WORK_DIR=${params.work_dir}/work-bam2fastq-${sample}
     mkdir \$WORK_DIR && chmod 2777 \$WORK_DIR
-    nextflow \
-        -C ${moduleDir}/default.config \
-        run ${moduleDir}/../../external/pipeline-convert-BAM2FASTQ/main.nf \
+    nextflow run \
+        ${moduleDir}/../../external/pipeline-convert-BAM2FASTQ/main.nf \
         -params-file combined_bam2fastq_params.yaml \
-        --input_csv ${input_csv} \
         --output_dir \$(pwd) \
         --dataset_id ${params.project_id} \
-        --work_dir \$WORK_DIR ${weblog_args}
+        -profile "${params.containerization_system}" \
+        --work_dir \$WORK_DIR \
+        -c ${moduleDir}/default.config ${weblog_args}
 
     rm -r \$WORK_DIR
     """

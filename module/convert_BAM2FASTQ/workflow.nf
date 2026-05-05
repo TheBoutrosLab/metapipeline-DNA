@@ -15,7 +15,7 @@
 
 include { call_convert_BAM2FASTQ } from './call_convert_BAM2FASTQ' addParams( log_output_dir: params.metapipeline_log_output_dir )
 include { extract_read_groups } from './extract_read_groups' addParams( log_output_dir: params.metapipeline_log_output_dir )
-include { create_CSV_BAM2FASTQ } from './create_CSV_BAM2FASTQ' addParams( log_output_dir: params.metapipeline_log_output_dir )
+include { create_YAML_convert_BAM2FASTQ } from './create_YAML_BAM2FASTQ'
 include { mark_pipeline_complete } from '../pipeline_status'
 include { identify_convert_bam2fastq_outputs } from './identify_outputs'
 
@@ -30,12 +30,12 @@ workflow convert_BAM2FASTQ {
             .map{ tuple(it.patient, it.sample, it.state, file(it.bam)) }
 
         extract_read_groups(ich)
-        create_CSV_BAM2FASTQ(ich)
-        call_convert_BAM2FASTQ(create_CSV_BAM2FASTQ.out.convert_bam2fastq_csv)
+        create_YAML_convert_BAM2FASTQ(ich)
+        call_convert_BAM2FASTQ(create_YAML_convert_BAM2FASTQ.out.convert_bam2fastq_yaml)
 
-        data_ch = call_convert_BAM2FASTQ.out[0].map { [it[1], it] }
-            .join(extract_read_groups.out[0].map { [it[1], it] })
-            .map { tuple(it[1][0], it[1][1], it[1][2], it[2][3], it[1][4]) }
+        data_ch = call_convert_BAM2FASTQ.out[0].map { [it[1], it] } // [sample, pipeline_out_data]
+            .join(extract_read_groups.out[0].map { [it[1], it] }) // [sample, pipeline_out_data, extract_rg_data]
+            .map { tuple(it[1][0], it[1][1], it[1][2], it[2][3], it[1][4]) } // [patient, sample, state, rg_csv, output dir]
 
         identify_convert_bam2fastq_outputs(data_ch)
 
