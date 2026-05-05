@@ -31,7 +31,7 @@ workflow convert_BAM2FASTQ {
 
         extract_read_groups(ich)
         create_YAML_convert_BAM2FASTQ(ich)
-        call_convert_BAM2FASTQ(create_YAML_BAM2FASTQ.out.convert_bam2fastq_yaml)
+        call_convert_BAM2FASTQ(create_YAML_convert_BAM2FASTQ.out.convert_bam2fastq_yaml)
 
         data_ch = call_convert_BAM2FASTQ.out[0].map { [it[1], it] }
             .join(extract_read_groups.out[0].map { [it[1], it] })
