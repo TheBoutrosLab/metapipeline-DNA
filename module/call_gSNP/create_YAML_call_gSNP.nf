@@ -31,10 +31,14 @@ process create_YAML_call_gSNP {
 
     patient_id = ''
     if (params.sample_mode == 'single') {
-        assert sample_info[single_sample_type].sample.size() == 1
+        if (!(sample_info[single_sample_type].sample.size() == 1)) {
+            throw new Exception("Single sample expected but received: `${sample_info[single_sample_type].sample.size()}`");
+        }
         patient_id = sample_info[single_sample_type].sample[0]
     } else if (params.sample_mode == 'paired') {
-        assert sample_info.tumor.sample.size() == 1
+        if (!(sample_info.tumor.sample.size() == 1)) {
+            throw new Exception("Single tumor sample expected but received: `${sample_info.tumor.sample.size()}`");
+        }
         patient_id = sample_info.tumor.sample[0]
     } else {
         patient_id = params.patient

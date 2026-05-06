@@ -28,7 +28,9 @@ process create_YAML_call_SRC {
     if (params.sample_mode == 'multi') {
         sample_id = params.patient
     } else {
-        assert sample_info[single_sample_type].sample.size() == 1
+        if (!(sample_info[single_sample_type].sample.size() == 1)) {
+            throw new Exception("Single sample expected but received: `${sample_info[single_sample_type].sample.size()}`");
+        }
         sample_id = sample_info[single_sample_type].sample[0]
     }
 
@@ -51,7 +53,9 @@ process create_YAML_call_SRC {
                 input_map.input[src_input_data.src_input_type].algorithm = src_input_data.algorithm
             }
 
-            assert input_map.input[src_input_data.src_input_type].algorithm == src_input_data.algorithm : "Found multiple algorithms for `${src_input_data.src_input_type}`: `${input_map.input[src_input_data.src_input_type].algorithm}` and `${src_input_data.algorithm}`"
+            if (!(input_map.input[src_input_data.src_input_type].algorithm == src_input_data.algorithm)) {
+                throw new Exception("Found multiple algorithms for `${src_input_data.src_input_type}`: `${input_map.input[src_input_data.src_input_type].algorithm}` and `${src_input_data.algorithm}`");
+            }
 
             if (!input_map.input[src_input_data.src_input_type].containsKey(sample_data.sample)) {
                 input_map.input[src_input_data.src_input_type][sample_data.sample] = []
@@ -61,8 +65,12 @@ process create_YAML_call_SRC {
         }
     }
 
-    assert input_map.input.SNV.algorithm != null : "Found no SNV input!"
-    assert input_map.input.CNA.algorithm != null : "Found no CNA input!"
+    if (!(input_map.input.SNV.algorithm != null)) {
+        throw new Exception("Found no SNV input!");
+    }
+    if (!(input_map.input.CNA.algorithm != null)) {
+        throw new Exception("Found no CNA input!");
+    }
 
     Yaml yaml = new Yaml()
     yaml.dump(input_map, new FileWriter("${task.workDir}/${input_yaml}"))
