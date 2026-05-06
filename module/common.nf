@@ -27,11 +27,15 @@ String identify_file(filepath) {
     def file_found = file(filepath);
 
     if (file_found in List) {
-        assert file_found.size() == 1 : "Failed to identify a single file for `${filepath}`: `${file_found}`";
+        if (!(file_found.size() == 1)) {
+            throw new Exception("Failed to identify a single file for `${filepath}`: `${file_found}`");
+        }
         file_found = file_found[0];
     }
 
-    assert file_found.exists() : "Identified file `${file_found}` does not exist!";
+    if (!(file_found.exists())) {
+        throw new Exception("Identified file `${file_found}` does not exist!");
+    }
     return file_found.toRealPath().toString();
 }
 
