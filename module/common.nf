@@ -28,13 +28,13 @@ String identify_file(filepath) {
 
     if (file_found in List) {
         if (!(file_found.size() == 1)) {
-            throw new Exception("Failed to identify a single file for `${filepath}`: `${file_found}`");
+            throw new AssertionError("Failed to identify a single file for `${filepath}`: `${file_found}`");
         }
         file_found = file_found[0];
     }
 
     if (!(file_found.exists())) {
-        throw new Exception("Identified file `${file_found}` does not exist!");
+        throw new AssertionError("Identified file `${file_found}` does not exist!");
     }
     return file_found.toRealPath().toString();
 }
