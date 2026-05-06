@@ -39,7 +39,9 @@ process create_YAML_generate_SQC_BAM {
 
     patient_id = ''
     if (params.sample_mode == 'single') {
-        assert sample_info[single_sample_type].sample.size() == 1
+        if (!(sample_info[single_sample_type].sample.size() == 1)) {
+            throw new Exception("Single sample expected but received: `${sample_info[single_sample_type].sample.size()}`");
+        }
         patient_id = sample_info[single_sample_type].sample[0]
     } else {
         patient_id = params.patient
