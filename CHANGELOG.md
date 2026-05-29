@@ -14,6 +14,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - align-DNA: `v11.1.0`
 - recalibrate-BAM: `v2.1.0`
 - generate-SQC-BAM: `v1.3.0`
+- calculate-targeted-coverage: `v2.1.0`
 
 ### Fixed
 
