@@ -18,6 +18,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - call-gSNP: `v12.0.0`
 - call-sSNV: `v9.1.0`
 - call-mtSNV: `v6.1.0`
+- call-gSV: `v5.5.0`
 
 ### Fixed
 
