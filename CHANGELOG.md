@@ -20,6 +20,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - call-mtSNV: `v6.1.0`
 - call-gSV: `v5.5.0`
 - call-sSV: `v8.1.0`
+- calculate-mtDNA-CopyNumber: `v1.1.0`
 
 ### Fixed
 
