@@ -8,6 +8,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Changed
+
+- StableLift: `v2.0.0`
+
 ### Fixed
 
 - Convert assertions to exceptions
