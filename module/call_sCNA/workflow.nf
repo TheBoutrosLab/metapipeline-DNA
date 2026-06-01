@@ -3,7 +3,7 @@
 */
 
 include { create_YAML_call_sCNA } from "${moduleDir}/create_YAML_call_sCNA"
-include { run_call_sCNA } from "${moduleDir}/run_call_sCNA" addParams( log_output_dir: params.metapipeline_log_output_dir )
+include { run_call_sCNA } from "${moduleDir}/run_call_sCNA"
 include { mark_pipeline_complete; mark_pipeline_exit_code } from "../pipeline_status"
 include { identify_call_scna_outputs } from "./identify_outputs"
 
