@@ -2,7 +2,7 @@
     Main entry point for calling StableLift pipeline
 */
 include { create_YAML_StableLift } from "${moduleDir}/create_YAML_StableLift"
-include { run_StableLift } from "${moduleDir}/run_StableLift" addParams( log_output_dir: params.metapipeline_log_output_dir )
+include { run_StableLift } from "${moduleDir}/run_StableLift"
 include { mark_pipeline_complete; mark_pipeline_exit_code } from "../pipeline_status"
 
 /*
