@@ -13,8 +13,8 @@
 *   A tuple of five elements, patient, sample, state, and the input_csv file for align-DNA 
 */
 
-include { call_convert_BAM2FASTQ } from './call_convert_BAM2FASTQ' addParams( log_output_dir: params.metapipeline_log_output_dir )
-include { extract_read_groups } from './extract_read_groups' addParams( log_output_dir: params.metapipeline_log_output_dir )
+include { call_convert_BAM2FASTQ } from './call_convert_BAM2FASTQ'
+include { extract_read_groups } from './extract_read_groups'
 include { create_YAML_convert_BAM2FASTQ } from './create_YAML_BAM2FASTQ'
 include { mark_pipeline_complete } from '../pipeline_status'
 include { identify_convert_bam2fastq_outputs } from './identify_outputs'
