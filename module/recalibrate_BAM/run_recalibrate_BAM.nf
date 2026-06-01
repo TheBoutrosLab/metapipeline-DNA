@@ -15,7 +15,7 @@ include { combine_input_with_params; generate_weblog_args } from '../common.nf'
 process run_recalibrate_BAM {
     cpus params.recalibrate_BAM.subworkflow_cpus
 
-    publishDir path: "${params.log_output_dir}/process-log",
+    publishDir path: "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
         saveAs: { "${task.process.replace(':', '/')}-${sample_id_for_recalibrate}/log${file(it).getName()}" }
