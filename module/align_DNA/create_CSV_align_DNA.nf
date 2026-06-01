@@ -15,7 +15,7 @@
 *     @return input_csv (file): the input CSV file generated to be passed to align-DNA
 */
 process create_CSV_align_DNA {
-    publishDir path: "${params.log_output_dir}/process-log",
+    publishDir path: "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
         saveAs: { "${task.process.replace(':', '/')}-${params.patient}/${sample}/log${file(it).getName()}" }
