@@ -3,7 +3,7 @@
 */
 
 include { create_YAML_call_gSV } from "${moduleDir}/create_YAML_call_gSV"
-include { run_call_gSV } from "${moduleDir}/run_call_gSV" addParams( log_output_dir: params.metapipeline_log_output_dir )
+include { run_call_gSV } from "${moduleDir}/run_call_gSV"
 include { mark_pipeline_complete; mark_pipeline_exit_code } from "../pipeline_status"
 include { identify_call_gsv_outputs } from "./identify_outputs"
 
