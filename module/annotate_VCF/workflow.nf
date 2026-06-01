@@ -2,7 +2,7 @@
     Main entry point for annotating variants
 */
 include { create_YAML_annotate_VCF } from "${moduleDir}/create_YAML_annotate_VCF"
-include { run_annotate_VCF } from "${moduleDir}/run_annotate_VCF" addParams( log_output_dir: params.metapipeline_log_output_dir )
+include { run_annotate_VCF } from "${moduleDir}/run_annotate_VCF"
 include { mark_pipeline_complete; mark_pipeline_exit_code } from "../pipeline_status"
 
 /*
