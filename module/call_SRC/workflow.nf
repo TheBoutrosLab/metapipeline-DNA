@@ -2,7 +2,7 @@
     Main entry point for calling call-SRC pipeline
 */
 include { create_YAML_call_SRC } from "${moduleDir}/create_YAML_call_SRC"
-include { run_call_SRC } from "${moduleDir}/run_call_SRC" addParams( log_output_dir: params.metapipeline_log_output_dir )
+include { run_call_SRC } from "${moduleDir}/run_call_SRC"
 include { mark_pipeline_complete; mark_pipeline_exit_code } from "../pipeline_status"
 
 /*
