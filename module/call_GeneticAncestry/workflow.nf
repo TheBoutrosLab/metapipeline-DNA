@@ -2,7 +2,7 @@
     Main entry point for annotating variants
 */
 include { create_YAML_call_GeneticAncestry } from "${moduleDir}/create_YAML_call_GeneticAncestry"
-include { run_call_GeneticAncestry } from "${moduleDir}/run_call_GeneticAncestry" addParams( log_output_dir: params.metapipeline_log_output_dir )
+include { run_call_GeneticAncestry } from "${moduleDir}/run_call_GeneticAncestry"
 include { mark_pipeline_complete; mark_pipeline_exit_code } from "../pipeline_status"
 
 /*

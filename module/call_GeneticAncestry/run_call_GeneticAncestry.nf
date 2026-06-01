@@ -21,7 +21,7 @@ process run_call_GeneticAncestry {
         mode: "copy",
         pattern: "pipeline-call-genetic-ancestry-*/*"
 
-    publishDir "${params.log_output_dir}/process-log",
+    publishDir "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
         saveAs: { "${task.process.replace(':', '/')}-${sample_id_for_call_geneticancestry}/log${file(it).getName()}" }
