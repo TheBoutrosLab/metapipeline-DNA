@@ -16,18 +16,19 @@ workflow generate_SQC_BAM {
     take:
         modification_signal
     main:
+        def this_pipeline = 'generate-SQC-BAM'
         if (!params.generate_SQC_BAM.is_pipeline_enabled) {
             modification_signal.until{ it == 'done' }.ifEmpty('done')
                 .map{ it ->
-                    mark_pipeline_complete(params.this_pipeline);
-                    mark_pipeline_exit_code(params.this_pipeline, 0);
+                    mark_pipeline_complete(this_pipeline);
+                    mark_pipeline_exit_code(this_pipeline, 0);
                     return 'done';
                 }
                 .set{ completion_signal }
         } else {
             // Watch for pipeline ordering
             Channel.watchPath( "${params.pipeline_status_directory}/*.ready" )
-                .until{ it -> it.name == "${params.this_pipeline}.ready" }
+                .until{ it -> it.name == "${this_pipeline}.ready" }
                 .ifEmpty('done')
                 .collect()
                 .map{ 'done' }
@@ -65,7 +66,7 @@ workflow generate_SQC_BAM {
                 .mix( pipeline_predecessor_complete )
                 .collect()
                 .map{ it ->
-                    mark_pipeline_complete(params.this_pipeline);
+                    mark_pipeline_complete(this_pipeline);
                     return 'done';
                 }
                 .mix(
@@ -73,7 +74,7 @@ workflow generate_SQC_BAM {
                         .map{ it -> (it as Integer) }
                         .sum()
                         .map { exit_code ->
-                            mark_pipeline_exit_code(params.this_pipeline, exit_code);
+                            mark_pipeline_exit_code(this_pipeline, exit_code);
                             return 'done';
                         }
                 )

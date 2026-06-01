@@ -17,6 +17,7 @@ workflow call_gSV {
     take:
         modification_signal
     main:
+        def this_pipeline = 'call-gSV'
         if (!params.call_gSV.is_pipeline_enabled) {
             modification_signal.until{ it == 'done' }.ifEmpty('done')
                 .map{ it ->
@@ -27,20 +28,20 @@ workflow call_gSV {
                         }
                         s_data["original_data"].getOrDefault("VCF", []).each { vcf_data ->
                             if (tools_to_move.contains(vcf_data['tool'])) {
-                                s_data[params.this_pipeline][vcf_data['tool']] = vcf_data['vcf_path'];
+                                s_data[this_pipeline][vcf_data['tool']] = vcf_data['vcf_path'];
                             }
                         }
                     };
                     System.out.println(params.sample_data);
-                    mark_pipeline_complete(params.this_pipeline);
-                    mark_pipeline_exit_code(params.this_pipeline, 0);
+                    mark_pipeline_complete(this_pipeline);
+                    mark_pipeline_exit_code(this_pipeline, 0);
                     return 'done';
                 }
                 .set{ completion_signal }
         } else {
             // Watch for pipeline ordering
             Channel.watchPath( "${params.pipeline_status_directory}/*.ready" )
-                .until{ it -> it.name == "${params.this_pipeline}.ready" }
+                .until{ it -> it.name == "${this_pipeline}.ready" }
                 .ifEmpty('done')
                 .collect()
                 .map{ 'done' }
@@ -85,7 +86,7 @@ workflow call_gSV {
                 .mix( pipeline_predecessor_complete )
                 .collect()
                 .map{ it ->
-                    mark_pipeline_complete(params.this_pipeline);
+                    mark_pipeline_complete(this_pipeline);
                     return 'done';
                 }
                 .mix(
@@ -93,7 +94,7 @@ workflow call_gSV {
                         .map{ it -> (it as Integer) }
                         .sum()
                         .map { exit_code ->
-                            mark_pipeline_exit_code(params.this_pipeline, exit_code);
+                            mark_pipeline_exit_code(this_pipeline, exit_code);
                             return 'done';
                         }
                 )

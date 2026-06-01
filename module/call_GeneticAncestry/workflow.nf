@@ -12,6 +12,7 @@ workflow call_GeneticAncestry {
     take:
         modification_signal
     main:
+        def this_pipeline = 'call-GeneticAncestry'
         // Extract inputs from data structure
         modification_signal.until{ it == 'done' }.ifEmpty('done')
             .collect()
@@ -42,7 +43,7 @@ workflow call_GeneticAncestry {
         run_call_GeneticAncestry.out.complete
             .collect()
             .map{ it ->
-                mark_pipeline_complete(params.this_pipeline);
+                mark_pipeline_complete(this_pipeline);
                 return 'done';
             }
             .mix(
@@ -50,7 +51,7 @@ workflow call_GeneticAncestry {
                     .map{ it -> (it as Integer) }
                     .sum()
                     .map { exit_code ->
-                        mark_pipeline_exit_code(params.this_pipeline, exit_code);
+                        mark_pipeline_exit_code(this_pipeline, exit_code);
                         return 'done';
                     }
             )

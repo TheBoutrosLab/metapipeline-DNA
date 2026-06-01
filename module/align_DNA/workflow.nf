@@ -20,15 +20,16 @@ workflow align_DNA {
     take:
         modification_signal
     main:
+        def this_pipeline = 'align-DNA'
         if (params.override_realignment) {
             modification_signal.until{ it == 'done' }.ifEmpty('done')
                 .map{ it ->
                     params.sample_data.each { s, s_data ->
-                        s_data[params.this_pipeline].each {a, a_data ->
+                        s_data[this_pipeline].each {a, a_data ->
                             a_data['BAM'] = s_data['original_data']['path']
                         }
                     };
-                    mark_pipeline_complete(params.this_pipeline);
+                    mark_pipeline_complete(this_pipeline);
                     return 'done'
                 }
                 .set{ alignment_sample_data_updated }
@@ -78,7 +79,7 @@ workflow align_DNA {
             identify_align_dna_outputs.out.och_align_dna_outputs_identified
                 .collect()
                 .map{
-                    mark_pipeline_complete(params.this_pipeline);
+                    mark_pipeline_complete(this_pipeline);
                     return 'done'
                 }
                 .set{ alignment_sample_data_updated }

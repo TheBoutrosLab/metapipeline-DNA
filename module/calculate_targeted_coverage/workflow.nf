@@ -16,6 +16,7 @@ workflow calculate_targeted_coverage {
     take:
         modification_signal
     main:
+        def this_pipeline = 'calculate-targeted-coverage'
         ich = Channel.empty()
         if (!['VCF', 'SRC'].contains(params.input_type)) {
             // Default to BWA-MEM2 as main aligner unless it's not being used
@@ -71,7 +72,7 @@ workflow calculate_targeted_coverage {
                             .map{ it -> (it as Integer) }
                             .sum()
                             .map{ exit_code ->
-                                mark_pipeline_exit_code(params.this_pipeline, exit_code);
+                                mark_pipeline_exit_code(this_pipeline, exit_code);
                                 return 'done'
                             }
                     )
