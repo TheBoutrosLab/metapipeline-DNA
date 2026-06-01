@@ -14,7 +14,7 @@ workflow identify_call_gsnp_outputs {
 
         def output_info = [
             'GATK': ['HaplotypeCaller', "GATK-*${sample_id}_snv.vcf.gz"],
-            'DeepVariant': ['DeepVariant', "DeepVariant-${sample_id}.vcf.gz"]
+            'DeepVariant': ['DeepVariant', "DeepVariant-*${sample_id}.vcf.gz"]
         ]
 
         def outputs_to_check = [];
