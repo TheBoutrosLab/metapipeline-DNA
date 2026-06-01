@@ -2,7 +2,7 @@
     Main entry point for calculating mtDNA copy number
 */
 include { create_YAML_calculate_mtDNA_CopyNumber } from "${moduleDir}/create_YAML_calculate_mtDNA_CopyNumber"
-include { run_calculate_mtDNA_CopyNumber } from "${moduleDir}/run_calculate_mtDNA_CopyNumber" addParams( log_output_dir: params.metapipeline_log_output_dir )
+include { run_calculate_mtDNA_CopyNumber } from "${moduleDir}/run_calculate_mtDNA_CopyNumber"
 include { mark_pipeline_complete; mark_pipeline_exit_code } from "../pipeline_status"
 
 /*
