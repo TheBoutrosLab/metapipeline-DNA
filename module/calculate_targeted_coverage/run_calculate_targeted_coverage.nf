@@ -12,7 +12,7 @@ process run_calculate_targeted_coverage {
 
     label 'graceful_failure'
 
-    publishDir path: "${params.log_output_dir}/process-log",
+    publishDir path: "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
         saveAs: { "${task.process.replace(':', '/')}-${sample_id_for_targeted_coverage}/log${file(it).getName()}" }
