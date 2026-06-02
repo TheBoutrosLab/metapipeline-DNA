@@ -21,7 +21,7 @@ process run_annotate_VCF {
         mode: "copy",
         pattern: "annotate-VCF-*/*"
 
-    publishDir "${params.log_output_dir}/process-log",
+    publishDir "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
         saveAs: { "${task.process.replace(':', '/')}-${sample_id_for_annotate_vcf}/log${file(it).getName()}" }

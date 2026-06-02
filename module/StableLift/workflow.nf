@@ -2,7 +2,7 @@
     Main entry point for calling StableLift pipeline
 */
 include { create_YAML_StableLift } from "${moduleDir}/create_YAML_StableLift"
-include { run_StableLift } from "${moduleDir}/run_StableLift" addParams( log_output_dir: params.metapipeline_log_output_dir )
+include { run_StableLift } from "${moduleDir}/run_StableLift"
 include { mark_pipeline_complete; mark_pipeline_exit_code } from "../pipeline_status"
 
 /*
@@ -15,6 +15,7 @@ workflow stable_lift {
     take:
         modification_signal
     main:
+        def this_pipeline = 'StableLift'
         // Extract inputs from data structure
         modification_signal.until{ it == 'done' }.ifEmpty('done')
             .collect()
@@ -52,7 +53,7 @@ workflow stable_lift {
         run_StableLift.out.complete
             .collect()
             .map{ it ->
-                mark_pipeline_complete(params.this_pipeline);
+                mark_pipeline_complete(this_pipeline);
                 return 'done';
             }
             .mix(
@@ -60,7 +61,7 @@ workflow stable_lift {
                     .map { it -> (it as Integer) }
                     .sum()
                     .map { exit_code ->
-                        mark_pipeline_exit_code(params.this_pipeline, exit_code);
+                        mark_pipeline_exit_code(this_pipeline, exit_code);
                         return 'done';
                     }
             )

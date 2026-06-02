@@ -2,7 +2,7 @@
     Main entry point for calculating mtDNA copy number
 */
 include { create_YAML_calculate_mtDNA_CopyNumber } from "${moduleDir}/create_YAML_calculate_mtDNA_CopyNumber"
-include { run_calculate_mtDNA_CopyNumber } from "${moduleDir}/run_calculate_mtDNA_CopyNumber" addParams( log_output_dir: params.metapipeline_log_output_dir )
+include { run_calculate_mtDNA_CopyNumber } from "${moduleDir}/run_calculate_mtDNA_CopyNumber"
 include { mark_pipeline_complete; mark_pipeline_exit_code } from "../pipeline_status"
 
 /*
@@ -12,6 +12,7 @@ workflow calculate_mtDNA_CopyNumber {
     take:
         modification_signal
     main:
+        def this_pipeline = 'calculate-mtDNA-CopyNumber'
         // Extract inputs from data structure
         modification_signal.until{ it == 'done' }.ifEmpty('done')
             .collect()
@@ -45,7 +46,7 @@ workflow calculate_mtDNA_CopyNumber {
         run_calculate_mtDNA_CopyNumber.out.complete
             .collect()
             .map{ it ->
-                mark_pipeline_complete(params.this_pipeline);
+                mark_pipeline_complete(this_pipeline);
                 return 'done';
             }
             .mix(
@@ -53,7 +54,7 @@ workflow calculate_mtDNA_CopyNumber {
                     .map{ it -> (it as Integer) }
                     .sum()
                     .map { exit_code ->
-                        mark_pipeline_exit_code(params.this_pipeline, exit_code);
+                        mark_pipeline_exit_code(this_pipeline, exit_code);
                         return 'done';
                     }
             )

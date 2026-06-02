@@ -1,22 +1,22 @@
 
 nextflow.enable.dsl = 2
 
-include { convert_BAM2FASTQ } from "${moduleDir}/convert_BAM2FASTQ/workflow" addParams( this_pipeline: 'convert-BAM2FASTQ' )
-include { align_DNA } from "${moduleDir}/align_DNA/workflow" addParams( this_pipeline: 'align-DNA' )
-include { recalibrate_BAM } from "${moduleDir}/recalibrate_BAM/workflow" addParams( this_pipeline: 'recalibrate-BAM' )
-include { calculate_targeted_coverage } from "${moduleDir}/calculate_targeted_coverage/workflow" addParams( this_pipeline: 'calculate-targeted-coverage' )
-include { generate_SQC_BAM } from "${moduleDir}/generate_SQC_BAM/workflow" addParams( this_pipeline: 'generate-SQC-BAM' )
-include { call_gSNP } from "${moduleDir}/call_gSNP/workflow" addParams( this_pipeline: 'call-gSNP' )
-include { call_sSNV } from "${moduleDir}/call_sSNV/workflow" addParams( this_pipeline: 'call-sSNV' )
-include { call_mtSNV } from "${moduleDir}/call_mtSNV/workflow" addParams( this_pipeline: 'call-mtSNV' )
-include { call_gSV } from "${moduleDir}/call_gSV/workflow" addParams( log_output_dir: params.metapipeline_log_output_dir, this_pipeline: 'call-gSV' )
-include { call_sSV } from "${moduleDir}/call_sSV/workflow" addParams( log_output_dir: params.metapipeline_log_output_dir, this_pipeline: 'call-sSV' )
-include { call_sCNA } from "${moduleDir}/call_sCNA/workflow" addParams( log_output_dir: params.metapipeline_log_output_dir, this_pipeline: 'call-sCNA' )
-include { call_SRC } from "${moduleDir}/call_SRC/workflow" addParams( log_output_dir: params.metapipeline_log_output_dir, this_pipeline: 'call-SRC')
-include { stable_lift } from "${moduleDir}/StableLift/workflow" addParams( log_output_dir: params.metapipeline_log_output_dir, this_pipeline: 'StableLift' )
-include { annotate_VCF } from "${moduleDir}/annotate_VCF/workflow" addParams( log_output_dir: params.metapipeline_log_output_dir, this_pipeline: 'annotate-VCF' )
-include { call_GeneticAncestry } from "${moduleDir}/call_GeneticAncestry/workflow" addParams( log_output_dir: params.metapipeline_log_output_dir, this_pipeline: 'call-GeneticAncestry' )
-include { calculate_mtDNA_CopyNumber } from "${moduleDir}/calculate_mtDNA_CopyNumber/workflow" addParams( log_output_dir: params.metapipeline_log_output_dir, this_pipeline: 'calculate-mtDNA-CopyNumber' )
+include { convert_BAM2FASTQ } from "${moduleDir}/convert_BAM2FASTQ/workflow"
+include { align_DNA } from "${moduleDir}/align_DNA/workflow"
+include { recalibrate_BAM } from "${moduleDir}/recalibrate_BAM/workflow"
+include { calculate_targeted_coverage } from "${moduleDir}/calculate_targeted_coverage/workflow"
+include { generate_SQC_BAM } from "${moduleDir}/generate_SQC_BAM/workflow"
+include { call_gSNP } from "${moduleDir}/call_gSNP/workflow"
+include { call_sSNV } from "${moduleDir}/call_sSNV/workflow"
+include { call_mtSNV } from "${moduleDir}/call_mtSNV/workflow"
+include { call_gSV } from "${moduleDir}/call_gSV/workflow"
+include { call_sSV } from "${moduleDir}/call_sSV/workflow"
+include { call_sCNA } from "${moduleDir}/call_sCNA/workflow"
+include { call_SRC } from "${moduleDir}/call_SRC/workflow"
+include { stable_lift } from "${moduleDir}/StableLift/workflow"
+include { annotate_VCF } from "${moduleDir}/annotate_VCF/workflow"
+include { call_GeneticAncestry } from "${moduleDir}/call_GeneticAncestry/workflow"
+include { calculate_mtDNA_CopyNumber } from "${moduleDir}/calculate_mtDNA_CopyNumber/workflow"
 include { create_directory; mark_pipeline_complete } from "${moduleDir}/pipeline_status"
 
 workflow {

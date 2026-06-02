@@ -21,7 +21,7 @@ process run_calculate_mtDNA_CopyNumber {
         mode: "copy",
         pattern: "calculate-mtDNA-CopyNumber-*/*"
 
-    publishDir "${params.log_output_dir}/process-log",
+    publishDir "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
         saveAs: { "${task.process.replace(':', '/')}-${sample_id_for_calculate_mtdna_copynumber}/log${file(it).getName()}" }

@@ -2,7 +2,7 @@
     Main entry point for calling calculate-targeted-coverage pipeline
 */
 include { create_YAML_calculate_targeted_coverage } from "${moduleDir}/create_YAML_calculate_targeted_coverage"
-include { run_calculate_targeted_coverage } from "${moduleDir}/run_calculate_targeted_coverage" addParams( log_output_dir: params.metapipeline_log_output_dir )
+include { run_calculate_targeted_coverage } from "${moduleDir}/run_calculate_targeted_coverage"
 include { mark_pipeline_complete; mark_pipeline_exit_code } from "../pipeline_status"
 include { identify_targeted_coverage_outputs; resolve_interval_selection } from './identify_outputs'
 
@@ -16,6 +16,7 @@ workflow calculate_targeted_coverage {
     take:
         modification_signal
     main:
+        def this_pipeline = 'calculate-targeted-coverage'
         ich = Channel.empty()
         if (!['VCF', 'SRC'].contains(params.input_type)) {
             // Default to BWA-MEM2 as main aligner unless it's not being used
@@ -71,7 +72,7 @@ workflow calculate_targeted_coverage {
                             .map{ it -> (it as Integer) }
                             .sum()
                             .map{ exit_code ->
-                                mark_pipeline_exit_code(params.this_pipeline, exit_code);
+                                mark_pipeline_exit_code(this_pipeline, exit_code);
                                 return 'done'
                             }
                     )

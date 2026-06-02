@@ -10,7 +10,7 @@ process call_convert_BAM2FASTQ {
         mode: 'copy',
         pattern: 'convert-BAM2FASTQ-*/*'
 
-    publishDir path: "${params.log_output_dir}/process-log",
+    publishDir path: "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
         saveAs: { "${task.process.replace(':', '/')}-${sample}/log${file(it).getName()}" }

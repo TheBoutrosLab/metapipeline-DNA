@@ -10,7 +10,7 @@ process run_generate_SQC_BAM {
 
     label 'graceful_failure'
 
-    publishDir path: "${params.log_output_dir}/process-log",
+    publishDir path: "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
         saveAs: { "${task.process.replace(':', '/')}-${resolved_id}/log${file(it).getName()}" }

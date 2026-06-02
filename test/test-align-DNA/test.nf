@@ -1,7 +1,7 @@
 
 nextflow.enable.dsl = 2
 
-include { align_DNA } from "${projectDir}/../../module/align_DNA/workflow" addParams( this_pipeline: "align-DNA" )
+include { align_DNA } from "${projectDir}/../../module/align_DNA/workflow"
 include { create_directory } from "${projectDir}/../../module/pipeline_status"
 
 workflow {

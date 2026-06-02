@@ -10,8 +10,8 @@
 *   A tuple with patient, sample, state, and the aligned BAM.
 */
 
-include { create_CSV_align_DNA } from "./create_CSV_align_DNA" addParams( log_output_dir: params.metapipeline_log_output_dir )
-include { call_align_DNA } from "./call_align_DNA" addParams( log_output_dir: params.metapipeline_log_output_dir )
+include { create_CSV_align_DNA } from "./create_CSV_align_DNA"
+include { call_align_DNA } from "./call_align_DNA"
 include { mark_pipeline_complete } from "../pipeline_status"
 include { identify_align_dna_outputs } from "./identify_outputs"
 include { sanitize_string } from "../../external/pipeline-Nextflow-module/modules/common/generate_standardized_filename/main.nf"
@@ -20,15 +20,16 @@ workflow align_DNA {
     take:
         modification_signal
     main:
+        def this_pipeline = 'align-DNA'
         if (params.override_realignment) {
             modification_signal.until{ it == 'done' }.ifEmpty('done')
                 .map{ it ->
                     params.sample_data.each { s, s_data ->
-                        s_data[params.this_pipeline].each {a, a_data ->
+                        s_data[this_pipeline].each {a, a_data ->
                             a_data['BAM'] = s_data['original_data']['path']
                         }
                     };
-                    mark_pipeline_complete(params.this_pipeline);
+                    mark_pipeline_complete(this_pipeline);
                     return 'done'
                 }
                 .set{ alignment_sample_data_updated }
@@ -78,7 +79,7 @@ workflow align_DNA {
             identify_align_dna_outputs.out.och_align_dna_outputs_identified
                 .collect()
                 .map{
-                    mark_pipeline_complete(params.this_pipeline);
+                    mark_pipeline_complete(this_pipeline);
                     return 'done'
                 }
                 .set{ alignment_sample_data_updated }

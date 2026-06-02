@@ -5,7 +5,7 @@ include { create_YAML_recalibrate_BAM } from "./create_YAML_recalibrate_BAM"
 include {
     run_recalibrate_BAM as run_recalibrate_BAM_delete_tumor
     run_recalibrate_BAM as run_recalibrate_BAM_delete_all
-    } from "./run_recalibrate_BAM" addParams( log_output_dir: params.metapipeline_log_output_dir )
+    } from "./run_recalibrate_BAM"
 include { mark_pipeline_complete } from '../pipeline_status'
 include { identify_recalibrate_bam_outputs } from './identify_outputs'
 
@@ -27,6 +27,8 @@ workflow recalibrate_BAM {
         modification_signal
 
     main:
+        def this_pipeline = 'recalibrate-BAM'
+
         // Default to BWA-MEM2 as main aligner unless it's not being used
         def main_aligner = ('BWA-MEM2' in params.align_DNA.aligner) ? 'BWA-MEM2' : params.align_DNA.aligner[0]
 
@@ -68,13 +70,13 @@ workflow recalibrate_BAM {
                 .map{
                     if (!['VCF', 'SRC'].contains(params.input_type)) {
                         params.sample_data.each{ s, s_data ->
-                            s_data[params.this_pipeline]['BAM'] = s_data['align-DNA'][main_aligner]['BAM'];
+                            s_data[this_pipeline]['BAM'] = s_data['align-DNA'][main_aligner]['BAM'];
                         };
                     }
                     return 'done'
                 }
                 .map{
-                    mark_pipeline_complete(params.this_pipeline);
+                    mark_pipeline_complete(this_pipeline);
                     return 'done'
                 }.set{ recalibrate_sample_data_updated }
         } else {
@@ -136,7 +138,7 @@ workflow recalibrate_BAM {
             identify_recalibrate_bam_outputs.out.och_recalibrate_bam_identified
                 .collect()
                 .map{
-                    mark_pipeline_complete(params.this_pipeline);
+                    mark_pipeline_complete(this_pipeline);
                     return 'done'
                 }
                 .set{ recalibrate_sample_data_updated }
