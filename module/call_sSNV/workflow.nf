@@ -78,17 +78,43 @@ workflow call_sSNV {
             ich.map{ it -> it.normal }.flatten().unique{ [it.patient, it.sample, it.state] }.set{ input_ch_normal }
             ich.map{ it -> it.tumor }.flatten().unique{ [it.patient, it.sample, it.state] }.set{ input_ch_tumor }
 
+            input_ch_create_ssnv_yaml = Channel.empty()
+
+            // Handle input generation for normal-only Mutect2 if requested
+            if (params.ssnv_run_normal_only_mutect2) {
+                input_ch_normal
+                    .map{[
+                        it['sample'],
+                        [[it['sample'], file(it['bam']).toRealPath()]],
+                        [['NO_ID', 'NO_BAM.bam']],
+                        ['mutect2']
+                    ]}
+                    .set{ input_ch_normal_only }
+
+                    input_ch_create_ssnv_yaml
+                        .mix( input_ch_normal_only )
+                        .set{ input_ch_create_ssnv_yaml }
+            }
+
             if (params.sample_mode == 'single') {
                 // Only Mutect2 and DeepSomatic support tumor-only calling
                 if ('mutect2' in params.call_sSNV.algorithm || 'deepsomatic' in params.call_sSNV.algorithm) {
 
                     input_ch_tumor
-                        .map{ [it['sample'], [['NO_ID', 'NO_BAM.bam']], [[it['sample'], file(it['bam']).toRealPath()]], params.call_sSNV.algorithm.findAll{ it == 'mutect2' || it == 'deepsomatic' }.unique()] }
+                        .map{[
+                            it['sample'],
+                            [['NO_ID', 'NO_BAM.bam']],
+                            [[it['sample'], file(it['bam']).toRealPath()]],
+                            params.call_sSNV.algorithm.findAll{ it == 'mutect2' || it == 'deepsomatic' }.unique()
+                        ]}
                         .set{ input_ch_tumor_only }
                 } else {
                     Channel.empty().set{ input_ch_tumor_only }
                 }
-                create_YAML_call_sSNV(input_ch_tumor_only)
+
+                input_ch_create_ssnv_yaml
+                    .mix( input_ch_tumor_only )
+                    .set{ input_ch_create_ssnv_yaml }
             } else {
                 // [patient, [normal_ID,normal_BAM], [tumor_ID,tumor_BAM]]
                 input_ch_normal.combine(input_ch_tumor).map{ it ->
@@ -136,6 +162,9 @@ workflow call_sSNV {
 
                 create_YAML_call_sSNV(input_ch_create_ssnv_yaml)
             }
+
+            create_YAML_call_sSNV(input_ch_create_ssnv_yaml)
+
             run_call_sSNV(create_YAML_call_sSNV.out)
 
             identify_call_ssnv_outputs(
