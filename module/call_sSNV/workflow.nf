@@ -138,7 +138,6 @@ workflow call_sSNV {
                     ]
                 }.set{ input_ch_create_ssnv_yaml_pairedsample }
 
-                input_ch_create_ssnv_yaml = Channel.empty()
                 requested_ssnv_algorithms = params.call_sSNV.algorithm.unique(false)
 
                 if ( params.sample_mode == 'multi' &&
@@ -146,6 +145,7 @@ workflow call_sSNV {
                     (params.normal_sample_count > 1 || params.tumor_sample_count > 1) ) {
                     input_ch_create_ssnv_yaml = input_ch_create_ssnv_yaml_multisample
                         .combine( Channel.of( ['mutect2'] ) )
+                        .mix( input_ch_create_ssnv_yaml )
 
                     // With multiple algorithms requested, run Mutect2 twice (in multi and paired mode)
                     // to include Mutect2 in intersection results
@@ -159,8 +159,6 @@ workflow call_sSNV {
                         .combine( Channel.of( [requested_ssnv_algorithms] ) )
                         .mix( input_ch_create_ssnv_yaml )
                 }
-
-                create_YAML_call_sSNV(input_ch_create_ssnv_yaml)
             }
 
             create_YAML_call_sSNV(input_ch_create_ssnv_yaml)
