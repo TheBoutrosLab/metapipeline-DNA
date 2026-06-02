@@ -23,6 +23,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - call-sSV: `v8.1.0`
 - calculate-mtDNA-CopyNumber: `v1.1.0`
 
+### Removed
+
+- Usage of `addParams`
+
 ### Fixed
 
 - Convert assertions to exceptions
