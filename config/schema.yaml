@@ -108,6 +108,11 @@ src_run_all_combinations:
   required: false
   default: false
   help: 'Whether to run all possible combinations of SNV and CNA tools for call-SRC'
+ssnv_run_normal_only_mutect2:
+  type: 'Bool'
+  required: true
+  default: false
+  help: 'Whether to run Mutect2 on normal sample alone regardless of run mode'
 downstream_pipeline_order:
   type: 'List'
   required: false
