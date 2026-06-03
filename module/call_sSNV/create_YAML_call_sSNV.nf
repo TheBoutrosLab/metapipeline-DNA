@@ -34,13 +34,14 @@ process create_YAML_call_sSNV {
     param_tumor_bams = tumor_bam.collect{ ['BAM': "${it[1]}" as String] }
     param_normal_bam = normal_bam.collect{ ['BAM': "${it[1]}" as String] }
     param_force_normal_only = (tumor_bam[0][0] == 'NO_ID')
-    param_single_sample_type = (tumor_bam[0][0] == 'NO_ID') ? 'normal' : 'tumor'
+    // Commenting out the specific sample type until call-sSNV explicitly support normal-only mode
+    // param_single_sample_type = (tumor_bam[0][0] == 'NO_ID') ? 'normal' : 'tumor'
     param_single_sample_data = (param_single_sample_type == 'normal') ? param_normal_bam : param_tumor_bams
     if (params.sample_mode == 'single' || param_force_normal_only) {
         input_map = [
             'patient_id': sample_id,
             'input': [
-                ("${param_single_sample_type}" as String) : param_single_sample_data
+                'tumor' : param_single_sample_data
             ]
         ]
     } else {
