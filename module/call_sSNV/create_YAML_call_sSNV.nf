@@ -33,9 +33,10 @@ process create_YAML_call_sSNV {
     input_yaml = 'call_sSNV_input.yaml'
     param_tumor_bams = tumor_bam.collect{ ['BAM': "${it[1]}" as String] }
     param_normal_bam = normal_bam.collect{ ['BAM': "${it[1]}" as String] }
+    param_force_normal_only = (tumor_bam[0][0] == 'NO_ID')
     param_single_sample_type = (tumor_bam[0][0] == 'NO_ID') ? 'normal' : 'tumor'
     param_single_sample_data = (param_single_sample_type == 'normal') ? param_normal_bam : param_tumor_bams
-    if (params.sample_mode == 'single') {
+    if (params.sample_mode == 'single' || param_force_normal_only) {
         input_map = [
             'patient_id': sample_id,
             'input': [
