@@ -182,6 +182,7 @@ process call_metapipeline_DNA {
         --task_hash \$(pwd | rev | cut -d '/' -f 1,2 | rev | sed 's/\\//_/') \
         --src_snv_tool ${params.src_snv_tool} \
         --src_cna_tool ${params.src_cna_tool} \
+        --ssnv_run_normal_only_mutect2 ${params.ssnv_run_normal_only_mutect2} \
         -params-file ${pipeline_params_json} \
         -c ${moduleDir}/config/metapipeline_DNA_base.config
     """ + limiter_wrapper_post
