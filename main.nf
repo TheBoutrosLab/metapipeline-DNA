@@ -183,6 +183,7 @@ process call_metapipeline_DNA {
         --src_snv_tool ${params.src_snv_tool} \
         --src_cna_tool ${params.src_cna_tool} \
         --ssnv_run_normal_only_mutect2 ${params.ssnv_run_normal_only_mutect2} \
+        --ssnv_run_all_tumor_only ${params.ssnv_run_all_tumor_only} \
         -params-file ${pipeline_params_json} \
         -c ${moduleDir}/config/metapipeline_DNA_base.config
     """ + limiter_wrapper_post
