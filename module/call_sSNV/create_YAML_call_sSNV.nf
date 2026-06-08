@@ -53,6 +53,11 @@ process create_YAML_call_sSNV {
             ]
         ]
     }
+
+    if (param_force_normal_only) {
+        input_map = input_map + ['mutect2_pon_mode': true]
+    }
+
     Yaml yaml = new Yaml()
     yaml.dump(input_map, new FileWriter("${task.workDir}/${input_yaml}"))
 }
