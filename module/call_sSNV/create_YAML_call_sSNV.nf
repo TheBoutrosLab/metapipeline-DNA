@@ -34,6 +34,7 @@ process create_YAML_call_sSNV {
     param_tumor_bams = tumor_bam.collect{ ['BAM': "${it[1]}" as String] }
     param_normal_bam = normal_bam.collect{ ['BAM': "${it[1]}" as String] }
     param_force_normal_only = (tumor_bam[0][0] == 'NO_ID')
+    param_force_tumor_only = (params.sample_mode != 'single' && params.ssnv_run_all_tumor_only && normal_bam[0][0] == 'NO_ID' && tumor_bam.size() == 1)
     // TO-DO: Use exact sample type when call-sSNV explicitly supports normal-only mode
     param_single_sample_type = (param_force_normal_only) ? 'normal' : 'tumor'
     param_single_sample_data = (param_force_normal_only) ? param_normal_bam : param_tumor_bams
@@ -56,6 +57,10 @@ process create_YAML_call_sSNV {
 
     if (param_force_normal_only) {
         input_map = input_map + ['mutect2_pon_mode': true]
+    }
+
+    if (param_force_tumor_only) {
+        input_map = input_map + ['sample_dir_name': "${sample_id}-TumorOnly" as String]
     }
 
     Yaml yaml = new Yaml()
