@@ -26,6 +26,8 @@ process create_YAML_call_sSNV {
         tuple(
             val(sample_id),
             val(algorithms),
+            val(param_force_normal_only),
+            val(param_force_tumor_only),
             path(input_yaml)
         )
 
@@ -38,7 +40,7 @@ process create_YAML_call_sSNV {
     // TO-DO: Use exact sample type when call-sSNV explicitly supports normal-only mode
     param_single_sample_type = (param_force_normal_only) ? 'normal' : 'tumor'
     param_single_sample_data = (param_force_normal_only) ? param_normal_bam : param_tumor_bams
-    if (params.sample_mode == 'single' || param_force_normal_only) {
+    if (params.sample_mode == 'single' || param_force_normal_only || param_force_tumor_only) {
         input_map = [
             'patient_id': sample_id,
             'input': [

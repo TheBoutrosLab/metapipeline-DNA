@@ -182,7 +182,11 @@ workflow call_sSNV {
 
             identify_call_ssnv_outputs(
                 modification_signal.until{ it == 'done' }
-                    .mix( run_call_sSNV.out.identify_call_ssnv_out )
+                    .mix(
+                        run_call_sSNV.out.identify_call_ssnv_out
+                            .filter{ raw_output -> raw_output[3] } // Don't identify outputs from forced tumor-only mode
+                            .map{ raw_output -> raw_output[0..2] }
+                    )
             )
 
             run_call_sSNV.out.complete
