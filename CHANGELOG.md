@@ -21,7 +21,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - generate-SQC-BAM: `v1.3.0`
 - calculate-targeted-coverage: `v2.1.0`
 - call-gSNP: `v12.0.0`
-- call-sSNV: `v9.2.1`
+- call-sSNV: `v9.3.0`
 - call-mtSNV: `v6.1.0`
 - call-gSV: `v5.5.0`
 - call-sSV: `v8.1.0`
