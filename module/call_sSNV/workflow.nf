@@ -91,15 +91,30 @@ workflow call_sSNV {
                     ]}
                     .set{ input_ch_normal_only }
 
-                    input_ch_create_ssnv_yaml
-                        .mix( input_ch_normal_only )
-                        .set{ input_ch_create_ssnv_yaml }
+                input_ch_create_ssnv_yaml
+                    .mix( input_ch_normal_only )
+                    .set{ input_ch_create_ssnv_yaml }
+            }
+
+            // Handle input generation to run of tumor samples in tumor-only mode if requested
+            if (params.ssnv_run_all_tumor_only && params.sample_mode != 'single') {
+                input_ch_tumor
+                    .map{[
+                        it['sample'],
+                        [['NO_ID', 'NO_BAM.bam']],
+                        [[it['sample'], file(it['bam']).toRealPath()]],
+                        ['mutect2'] + params.call_sSNV.algorithm.findAll{ it == 'deepsomatic' }.unique()
+                    ]}
+                    .set{ input_ch_all_tumor_only }
+
+                input_ch_create_ssnv_yaml
+                    .mix( input_ch_all_tumor_only )
+                    .set{ input_ch_create_ssnv_yaml }
             }
 
             if (params.sample_mode == 'single') {
                 // Only Mutect2 and DeepSomatic support tumor-only calling
                 if ('mutect2' in params.call_sSNV.algorithm || 'deepsomatic' in params.call_sSNV.algorithm) {
-
                     input_ch_tumor
                         .map{[
                             it['sample'],
@@ -167,7 +182,11 @@ workflow call_sSNV {
 
             identify_call_ssnv_outputs(
                 modification_signal.until{ it == 'done' }
-                    .mix( run_call_sSNV.out.identify_call_ssnv_out )
+                    .mix(
+                        run_call_sSNV.out.identify_call_ssnv_out
+                            .filter{ raw_output -> raw_output[3] } // Don't identify outputs from forced tumor-only mode
+                            .map{ raw_output -> raw_output[0..2] }
+                    )
             )
 
             run_call_sSNV.out.complete

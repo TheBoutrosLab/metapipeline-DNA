@@ -113,6 +113,11 @@ ssnv_run_normal_only_mutect2:
   required: true
   default: false
   help: 'Whether to run Mutect2 on normal sample alone regardless of run mode'
+ssnv_run_all_tumor_only:
+  type: 'Bool'
+  required: true
+  default: false
+  help: 'Whether to run all given tumor samples through Mutect2 and DeepSomatic (if requested) regardless of run mode'
 downstream_pipeline_order:
   type: 'List'
   required: false
