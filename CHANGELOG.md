@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 
 - Option to always run Mutect2 in single-sample mode on normal sample to generate calls for Panel of Normals
+- Option to always run Mutect2 (and DeepSomatic if requested) in tumor-only mode regardless of run mode
 
 ### Changed
 
