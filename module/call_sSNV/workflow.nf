@@ -84,6 +84,7 @@ workflow call_sSNV {
             if (params.ssnv_run_normal_only_mutect2) {
                 input_ch_normal
                     .map{[
+                        ['param_force_normal_only': true, 'param_force_tumor_only': false, 'param_single_sample_type': 'normal'],
                         it['sample'],
                         [[it['sample'], file(it['bam']).toRealPath()]],
                         [['NO_ID', 'NO_BAM.bam']],
@@ -100,6 +101,7 @@ workflow call_sSNV {
             if (params.ssnv_run_all_tumor_only && params.sample_mode != 'single') {
                 input_ch_tumor
                     .map{[
+                        ['param_force_normal_only': false, 'param_force_tumor_only': true, 'param_single_sample_type': 'tumor'],
                         it['sample'],
                         [['NO_ID', 'NO_BAM.bam']],
                         [[it['sample'], file(it['bam']).toRealPath()]],
@@ -117,6 +119,7 @@ workflow call_sSNV {
                 if ('mutect2' in params.call_sSNV.algorithm || 'deepsomatic' in params.call_sSNV.algorithm) {
                     input_ch_tumor
                         .map{[
+                            ['param_force_normal_only': false, 'param_force_tumor_only': false, 'param_single_sample_type': 'tumor'],
                             it['sample'],
                             [['NO_ID', 'NO_BAM.bam']],
                             [[it['sample'], file(it['bam']).toRealPath()]],
@@ -136,17 +139,19 @@ workflow call_sSNV {
                     ['normal': it[0], 'tumor': it[1]]
                 }.map{ it ->
                     [
+                        ['param_force_normal_only': false, 'param_force_tumor_only': false, 'param_single_sample_type': null],
                         params.patient,
                         [[it['normal']['sample'], file(it['normal']['bam']).toRealPath()]],
                         [it['tumor']['sample'], file(it['tumor']['bam']).toRealPath()]
                     ]
-                }.groupTuple(by: [0,1])
+                }.groupTuple(by: [1,2])
                 .set{ input_ch_create_ssnv_yaml_multisample }
 
                 input_ch_normal.combine(input_ch_tumor).map{ it ->
                     ['normal': it[0], 'tumor': it[1]]
                 }.map{ it ->
                     [
+                        ['param_force_normal_only': false, 'param_force_tumor_only': false, 'param_single_sample_type': null],
                         it['tumor']['sample'],
                         [[it['normal']['sample'], file(it['normal']['bam']).toRealPath()]],
                         [[it['tumor']['sample'], file(it['tumor']['bam']).toRealPath()]]
