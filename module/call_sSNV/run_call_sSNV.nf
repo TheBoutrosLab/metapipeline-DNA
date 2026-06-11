@@ -31,10 +31,9 @@ process run_call_sSNV {
 
     input:
         tuple(
+            val(META),
             val(sample_id),
             val(algorithms),
-            val(param_force_normal_only),
-            val(param_force_tumor_only),
             path(input_yaml)
         )
 
@@ -46,9 +45,8 @@ process run_call_sSNV {
         env EXIT_CODE, emit: exit_code
 
     script:
-    base_sample_id = (param_force_tumor_only) ? "${sample_id}-TumorOnly" : sample_id
-    output_directory = "call-sSNV-*/${(base_sample_id == params.patient) ? base_sample_id : sanitize_string(base_sample_id)}"
-    identify_outputs = !param_force_tumor_only
+    output_directory = "call-sSNV-*/${META.param_output_dir_name}"
+    identify_outputs = !META.param_force_tumor_only
     def algorithm_list = (algorithms in List) ? algorithms : [algorithms]
     String params_to_dump = combine_input_with_params(params.call_sSNV.metapipeline_arg_map + ['algorithm': algorithm_list], new File(input_yaml.toRealPath().toString()))
     String setup_commands = generate_graceful_error_controller(task.ext)
