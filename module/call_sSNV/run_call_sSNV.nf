@@ -3,7 +3,6 @@
 */
 
 include { combine_input_with_params; generate_graceful_error_controller; generate_weblog_args } from '../common.nf'
-include { sanitize_string } from '../../external/pipeline-Nextflow-module/modules/common/generate_standardized_filename/main.nf'
 
 /*
 * Process to call the call-sSNV pipeline

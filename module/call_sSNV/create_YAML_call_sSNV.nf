@@ -1,4 +1,6 @@
 import org.yaml.snakeyaml.Yaml
+include { sanitize_string } from '../../external/pipeline-Nextflow-module/modules/common/generate_standardized_filename/main.nf'
+
 /*
 * Create input YAML file for the call-sSNV pipeline.
 *
