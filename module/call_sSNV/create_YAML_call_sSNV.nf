@@ -1,4 +1,6 @@
 import org.yaml.snakeyaml.Yaml
+include { sanitize_string } from '../../external/pipeline-Nextflow-module/modules/common/generate_standardized_filename/main.nf'
+
 /*
 * Create input YAML file for the call-sSNV pipeline.
 *
@@ -19,15 +21,14 @@ process create_YAML_call_sSNV {
 
     input:
         tuple(
-            val(sample_id), val(normal_bam), val(tumor_bam), val(algorithms)
+            val(META), val(sample_id), val(normal_bam), val(tumor_bam), val(algorithms)
         )
 
     output:
         tuple(
+            val(META),
             val(sample_id),
             val(algorithms),
-            val(param_force_normal_only),
-            val(param_force_tumor_only),
             path(input_yaml)
         )
 
@@ -35,12 +36,13 @@ process create_YAML_call_sSNV {
     input_yaml = 'call_sSNV_input.yaml'
     param_tumor_bams = tumor_bam.collect{ ['BAM': "${it[1]}" as String] }
     param_normal_bam = normal_bam.collect{ ['BAM': "${it[1]}" as String] }
-    param_force_normal_only = (tumor_bam[0][0] == 'NO_ID')
-    param_force_tumor_only = (params.sample_mode != 'single' && params.ssnv_run_all_tumor_only && normal_bam[0][0] == 'NO_ID' && tumor_bam.size() == 1)
-    // TO-DO: Use exact sample type when call-sSNV explicitly supports normal-only mode
-    param_single_sample_type = (param_force_normal_only) ? 'normal' : 'tumor'
-    param_single_sample_data = (param_force_normal_only) ? param_normal_bam : param_tumor_bams
+
+    param_force_normal_only = META.param_force_normal_only
+    param_force_tumor_only = META.param_force_tumor_only
+
     if (params.sample_mode == 'single' || param_force_normal_only || param_force_tumor_only) {
+        // TO-DO: Use exact sample type when call-sSNV explicitly supports normal-only mode
+        param_single_sample_data = (META.param_single_sample_type == 'normal') ? param_normal_bam : param_tumor_bams
         input_map = [
             'patient_id': sample_id,
             'input': [
@@ -57,12 +59,15 @@ process create_YAML_call_sSNV {
         ]
     }
 
+    base_sample_id = (param_force_tumor_only) ? "${sample_id}-TumorOnly" : sample_id
+    META['param_output_dir_name'] = (base_sample_id == params.patient) ? base_sample_id : sanitize_string(base_sample_id)
+
     if (param_force_normal_only) {
         input_map = input_map + ['mutect2_pon_mode': true]
     }
 
     if (param_force_tumor_only) {
-        input_map = input_map + ['sample_dir_name': "${sample_id}-TumorOnly" as String]
+        input_map = input_map + ['sample_dir_name': "${META.param_output_dir_name}" as String]
     }
 
     Yaml yaml = new Yaml()
