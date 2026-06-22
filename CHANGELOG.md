@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 
 - Streamline run mode handling with call-sSNV
+- Call-gSV: `v5.6.0`
 
 ## [9.0.0] - 2026-06-10
 
