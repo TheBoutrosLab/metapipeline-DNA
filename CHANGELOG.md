@@ -12,6 +12,21 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Detect resource allocations set through `pipeline_cpus` and `pipeline_memory` params for subworkflow allocation
 
+### Changed
+
+- align-DNA: `v11.2.0`
+- calculate-mtDNA-CopyNumber: `v1.2.0`
+- calculate-targeted-coverage: `v2.2.0`
+- call-gSNP: `v12.1.0`
+- call-gSV: `v5.8.0`
+- call-mtSNV: `v6.2.0`
+- call-sSNV: `v9.4.0`
+- call-sSV: `v8.4.0`
+- convert-BAM2FASTQ: `v1.2.0`
+- generate-SQC-BAM: `v1.4.0`
+- recalibrate-BAM: `v2.2.0`
+- StableLift: `v2.1.0`
+
 ## [9.2.0] - 2026-07-07
 
 ### Changed
