@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 
 - Detect resource allocations set through `pipeline_cpus` and `pipeline_memory` params for subworkflow allocation
+- Support setting Singularity cache and library directories for metapipeline runner-level processes
 
 ### Changed
 
