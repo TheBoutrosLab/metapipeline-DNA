@@ -45,6 +45,16 @@ apptainer_cache:
   mode: 'w'
   required: false
   help: 'Absolute path to Apptainer cache directory'
+singularity_library:
+  type: 'Path'
+  mode: 'r'
+  required: false
+  help: 'Absolute path to Singularity library directory'
+singularity_cache:
+  type: 'Path'
+  mode: 'w'
+  required: false
+  help: 'Absolute path to Singularity cache directory'
 partition:
   type: 'String'
   required: true
