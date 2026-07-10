@@ -21,7 +21,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - call-gSNP: `v12.1.1`
 - call-gSV: `v5.8.0`
 - call-mtSNV: `v6.2.0`
-- call-sSNV: `v9.4.0`
+- call-sSNV: `v9.4.1`
 - call-sSV: `v8.4.0`
 - convert-BAM2FASTQ: `v1.2.0`
 - generate-SQC-BAM: `v1.4.0`
