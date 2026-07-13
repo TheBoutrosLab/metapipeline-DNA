@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [9.3.0] - 2026-07-13
 
 ### Added
 
@@ -566,3 +566,4 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 [9.0.0]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v8.1.0...v9.0.0
 [9.1.0]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v9.0.0...v9.1.0
 [9.2.0]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v9.1.0...v9.2.0
+[9.3.0]: https://github.com/TheBoutrosLab/metapipeline-DNA/compare/v9.2.0...v9.3.0
