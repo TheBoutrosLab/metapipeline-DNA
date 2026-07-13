@@ -93,6 +93,8 @@ process create_config_metapipeline_DNA {
     List params_to_pass = [
         'apptainer_library',
         'apptainer_cache',
+        'singularity_library',
+        'singularity_cache',
         'pipeline_cpus',
         'pipeline_memory',
         'resource_allocation_profile_tag',
