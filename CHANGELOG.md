@@ -18,7 +18,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - align-DNA: `v11.2.0`
 - calculate-mtDNA-CopyNumber: `v1.2.0`
 - calculate-targeted-coverage: `v2.2.1`
-- call-gSNP: `v12.1.1`
+- call-gSNP: `v12.1.2`
 - call-gSV: `v5.8.0`
 - call-mtSNV: `v6.2.0`
 - call-sSNV: `v9.4.1`
