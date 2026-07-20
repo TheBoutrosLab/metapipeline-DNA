@@ -159,6 +159,7 @@ The following parameters are available at the metapipeline level:
 | `pipeline_params` | namespace | yes | Namespace containing parameters for each individual pipeline. Parameters for the requested pipelines must be given. |
 | `override_realignment` | boolean | yes | Whether to override conversion to FASTQ and realignment when given BAM input. Default: `false` |
 | `override_recalibrate_bam` | boolean | yes | Whether to override recalibrate-BAM pipeline when given BAM input. Default: `false` |
+| `primary_aligner` | string | no | Aligner whose BAM is passed to downstream pipelines. Must be one of the configured align-DNA aligners. Defaults to `BWA-MEM2` when selected, otherwise the first configured aligner. |
 | `src_snv_tool` | string | yes | Which SNV tool's output to use for SRC. Default: `BCFtools-Intersect` |
 | `src_cna_tool` | string | yes | Which CNA tool's output to use for SRC. Default: `Battenberg` |
 | `override_src_precursor_disable` | boolean | yes | Whether to override the automatic disabling of either call-sSNV or call-sCNA when the respective outputs are provided in the input. Default: `false` |
