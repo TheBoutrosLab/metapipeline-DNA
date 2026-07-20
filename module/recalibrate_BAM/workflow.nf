@@ -29,16 +29,13 @@ workflow recalibrate_BAM {
     main:
         def this_pipeline = 'recalibrate-BAM'
 
-        // Default to BWA-MEM2 as main aligner unless it's not being used
-        def main_aligner = ('BWA-MEM2' in params.align_DNA.aligner) ? 'BWA-MEM2' : params.align_DNA.aligner[0]
-
         if (!['VCF', 'SRC'].contains(params.input_type)) {
             // Extract inputs from data structure
             modification_signal.until{ it == 'done' }.ifEmpty('done')
                 .map{ it ->
                     def samples = [];
                     params.sample_data.each { s, s_data ->
-                        samples.add(['patient': s_data['patient'], 'sample': s, 'state': s_data['state'], 'bam': s_data['align-DNA'][main_aligner]['BAM']]);
+                        samples.add(['patient': s_data['patient'], 'sample': s, 'state': s_data['state'], 'bam': s_data['align-DNA'][params.primary_aligner]['BAM']]);
                     };
                     return samples
                 }
@@ -70,7 +67,7 @@ workflow recalibrate_BAM {
                 .map{
                     if (!['VCF', 'SRC'].contains(params.input_type)) {
                         params.sample_data.each{ s, s_data ->
-                            s_data[this_pipeline]['BAM'] = s_data['align-DNA'][main_aligner]['BAM'];
+                            s_data[this_pipeline]['BAM'] = s_data['align-DNA'][params.primary_aligner]['BAM'];
                         };
                     }
                     return 'done'
