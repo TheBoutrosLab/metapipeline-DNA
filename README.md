@@ -186,6 +186,7 @@ Pipeline selection is controlled by the `requested_pipelines` parameter. Given t
 Pipeline selection follows some default behaviors:
 
 - When given BAM input, the default pipeline selector will perform conversion to FASTQ, re-align the FASTQs, and perform recalibration. This default behavior can be disabled with the `override_realignment` and `override_recalibrate_bam` parameters. With `override_realignment`, the back-conversion to FASTQ and re-alignment will be disabled. With `override_recalibrate_bam`, recalibration of the BAM using recalibrate-BAM will be disabled.
+- When multiple aligners are configured, `primary_aligner` selects which aligned BAM is passed downstream. When align-DNA runs, the corresponding `<aligner>-<version>` value is automatically passed to recalibrate-BAM for output provenance. When realignment is skipped, `pipeline_params.recalibrate_BAM.aligner` must describe the original BAM using that format, for example `minibwa-0.4`.
 - When SNV or CNA calls are given as inputs, metapipeline-DNA will automatically disable the call-sSNV and call-sCNA pipelines, respectively, and use the given inputs for call-SRC. This behavior can be controlled by `override_src_precursor_disable` to let metapipeline-DNA run the call-sSNV and call-sCNA pipelines to generate inputs for call-SRC using the BAM or FASTQ inputs. **Note**: This option only has an effect in the case of mixed inputs being provided as the call-sSNV and call-sCNA pipelines require sequencing data as inputs.
 
 ### Pipeline-specific params
