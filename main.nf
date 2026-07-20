@@ -175,6 +175,7 @@ process call_metapipeline_DNA {
         --pipeline_exit_status_directory "\$(pwd)/PIPELINEEXITSTATUS" \
         --override_realignment ${params.override_realignment} \
         --override_recalibrate_bam ${params.override_recalibrate_bam} \
+        --primary_aligner ${params.primary_aligner} \
         --enable_input_deletion_recalibrate_bam ${params.enable_input_deletion_recalibrate_bam} \
         --normal_sample_count ${params.sample_counts[patient]['normal']} \
         --tumor_sample_count ${params.sample_counts[patient]['tumor']} \
