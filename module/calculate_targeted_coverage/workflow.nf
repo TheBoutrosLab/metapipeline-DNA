@@ -19,15 +19,12 @@ workflow calculate_targeted_coverage {
         def this_pipeline = 'calculate-targeted-coverage'
         ich = Channel.empty()
         if (!['VCF', 'SRC'].contains(params.input_type)) {
-            // Default to BWA-MEM2 as main aligner unless it's not being used
-            def main_aligner = ('BWA-MEM2' in params.align_DNA.aligner) ? 'BWA-MEM2' : params.align_DNA.aligner[0]
-
             // Extract inputs from data structure
             modification_signal.until{ it == 'done' }.ifEmpty('done')
                 .map{ it ->
                     def samples = [];
                     params.sample_data.each { s, s_data ->
-                        samples.add(['patient': s_data['patient'], 'sample': s, 'state': s_data['state'], 'bam': s_data['align-DNA'][main_aligner]['BAM']]);
+                        samples.add(['patient': s_data['patient'], 'sample': s, 'state': s_data['state'], 'bam': s_data['align-DNA'][params.primary_aligner]['BAM']]);
                     };
                     return samples
                 }

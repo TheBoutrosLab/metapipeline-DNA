@@ -30,7 +30,6 @@ process call_align_DNA {
 
     script:
     output_directory = "align-DNA-*/${sample}"
-    bam = "align-DNA-*/${sample}/BWA-MEM2-2.2.1/output/BWA-MEM2-*${sample}.bam"
 
     String params_to_dump = combine_input_with_params(params.align_DNA.metapipeline_arg_map)
     String weblog_args = generate_weblog_args()

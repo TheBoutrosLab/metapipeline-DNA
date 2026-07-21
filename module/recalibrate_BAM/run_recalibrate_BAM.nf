@@ -55,7 +55,7 @@ process run_recalibrate_BAM {
         ${moduleDir}/../../external/pipeline-recalibrate-BAM/main.nf \
         -params-file combined_recalibrate_bam_params.yaml \
         --work_dir \$WORK_DIR \
-        --metapipeline_final_output_dir "${params.output_dir}/output/align-DNA-*/*/BWA-MEM2-*/output" \
+        --metapipeline_final_output_dir "${params.output_dir}/output/align-DNA-*/*/${params.primary_aligner}-*/output" \
         --metapipeline_delete_input_bams ${params.enable_input_deletion_recalibrate_bam} \
         --output_dir \$(pwd) \
         --dataset_id ${params.project_id} \
