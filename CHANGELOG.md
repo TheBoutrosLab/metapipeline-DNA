@@ -15,7 +15,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
-- align-DNA: `v11.3.0`
+- align-DNA: `v11.3.1`
 - recalibrate-BAM: `v2.3.0`
 
 ## [9.3.0] - 2026-07-13
