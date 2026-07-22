@@ -21,7 +21,7 @@ process create_YAML_call_gSNP {
 
     exec:
     input_yaml = 'call_gSNP_input.yaml'
-    sample_ids = (sample_info.normal + sample_info.tumor).collect{ it.sample }
+    sample_ids = (sample_info.normal + sample_info.tumor).collect{ it.sample }.sort()
 
     single_sample_type = 'none'
     if (sample_info.tumor.isEmpty()) {
