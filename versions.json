@@ -12,8 +12,8 @@
     "version": "v9.4.1",
     "title": "v9.4.1",
     "aliases": [
-      "latest",
-      "release-candidate"
+      "release-candidate",
+      "latest"
     ],
     "properties": {
       "commit": "87ce80dc74040b7ab9b99efd7c2a1500470ac49f",
