@@ -12,7 +12,7 @@ workflow identify_call_ssnv_outputs {
         def sample_id = sanitize_string(raw_sample_id);
         def ssnv_output_dir = new File(call_ssnv_out[2].toString());
         def ssnv_output_pattern = /(.*)-([\d\.]*)$/;
-        if (sample_id == params.patient) { // Output from multi-mode, skip
+        if (raw_sample_id == params.patient) { // Output from multi-mode, skip
             return 'done';
         }
 
