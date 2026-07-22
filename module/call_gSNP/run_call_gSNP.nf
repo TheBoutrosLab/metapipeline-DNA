@@ -3,8 +3,9 @@ include { combine_input_with_params; generate_graceful_error_controller; generat
 * Call the call-gSNP pipeline
 *
 * Input:
-*   A tuple that contains 4 items:
+*   A tuple containing:
       @param sample_id_for_call_gsnp (String): Sample ID.
+*     @param sample_ids_for_call_gsnp (List): Sample IDs included in this run.
 *     @param input_yaml (file): The input YAML file for call-gSNP pipeline.
 *
 * Output:
@@ -27,11 +28,12 @@ process run_call_gSNP {
     input:
         tuple(
             val(sample_id_for_call_gsnp),
+            val(sample_ids_for_call_gsnp),
             path(input_yaml)
         )
 
     output:
-        tuple val(sample_id_for_call_gsnp), path(output_directory), emit: identify_call_gsnp_out, optional: true
+        tuple val(sample_id_for_call_gsnp), val(sample_ids_for_call_gsnp), path(output_directory), emit: identify_call_gsnp_out, optional: true
         path "call-gSNP-*/*", optional: true
         path ".command.*"
         val('done'), emit: complete
