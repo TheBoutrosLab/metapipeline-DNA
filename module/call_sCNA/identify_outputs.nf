@@ -10,7 +10,6 @@ workflow identify_call_scna_outputs {
         def raw_sample_id = call_scna_out[0];
         def sample_id = sanitize_string(raw_sample_id);
         def scna_output_dir = new File(call_scna_out[1].toString());
-        def scna_output_pattern = /(.*)-([\d\.]*)$/;
 
         def output_info = [
             'Battenberg': ['Battenberg', ["Battenberg-*${sample_id}*subclones.txt", "Battenberg-*${sample_id}*cellularity-ploidy.txt"]],
@@ -21,9 +20,12 @@ workflow identify_call_scna_outputs {
         def match = null;
 
         scna_output_dir.eachFile { file ->
-            match = (file.name =~ scna_output_pattern);
+            match = output_info.keySet().find { output_tool ->
+                def output_dir_prefix = (output_tool == 'cnv_facets') ? 'CNV_FACETS' : output_tool;
+                file.name.startsWith("${output_dir_prefix}-");
+            };
             if (match) {
-                outputs_to_check << [match[0][1], file.name];
+                outputs_to_check << [match, file.name];
             }
         }
 
