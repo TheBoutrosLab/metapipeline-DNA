@@ -12,6 +12,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Remove test configs and paths
 
+### Fixed
+
+- Fix labeling of read group in read group extraction
+
 ## [10.0.0] - 2026-07-30
 
 ### Added
