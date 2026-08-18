@@ -331,6 +331,16 @@ input:
                   mode: 'r'
                   required: true
                   help: 'Path to the CRAM file'
+                sample_alone_contamination:
+                  type: 'Path'
+                  mode: 'r'
+                  required: false
+                  help: 'Path to the sample-alone contamination table'
+                matched_normal_contamination:
+                  type: 'Path'
+                  mode: 'r'
+                  required: false
+                  help: 'Path to the matched-normal contamination table; tumor samples only'
             BAM:
               type: 'Namespace'
               required: false
@@ -341,6 +351,16 @@ input:
                   mode: 'r'
                   required: true
                   help: 'Path to the BAM file'
+                sample_alone_contamination:
+                  type: 'Path'
+                  mode: 'r'
+                  required: false
+                  help: 'Path to the sample-alone contamination table'
+                matched_normal_contamination:
+                  type: 'Path'
+                  mode: 'r'
+                  required: false
+                  help: 'Path to the matched-normal contamination table; tumor samples only'
             FASTQ:
               type: 'EntryList'
               required: false
