@@ -64,7 +64,14 @@ workflow call_sSNV {
                 .map{ it ->
                     def samples = [];
                     params.sample_data.each { s, s_data ->
-                        samples.add(['patient': s_data['patient'], 'sample': s, 'state': s_data['state'], 'bam': s_data['recalibrate-BAM']['BAM']]);
+                        samples.add([
+                            'patient': s_data['patient'],
+                            'sample': s,
+                            'state': s_data['state'],
+                            'bam': s_data['recalibrate-BAM']['BAM'],
+                            'sample_alone_contamination': s_data['recalibrate-BAM']['sample_alone_contamination'],
+                            'matched_normal_contamination': s_data['recalibrate-BAM']['matched_normal_contamination']
+                        ]);
                     };
                     return samples
                 }
@@ -86,8 +93,8 @@ workflow call_sSNV {
                     .map{[
                         ['param_force_normal_only': true, 'param_force_tumor_only': false, 'param_single_sample_type': 'normal'],
                         it['sample'],
-                        [[it['sample'], file(it['bam']).toRealPath()]],
-                        [['NO_ID', 'NO_BAM.bam']],
+                        [[it['sample'], file(it['bam']).toRealPath(), it['sample_alone_contamination'] ?: 'NO_TABLE.table']],
+                        [['NO_ID', 'NO_BAM.bam', 'NO_TABLE.table']],
                         ['mutect2']
                     ]}
                     .set{ input_ch_normal_only }
@@ -103,8 +110,8 @@ workflow call_sSNV {
                     .map{[
                         ['param_force_normal_only': false, 'param_force_tumor_only': true, 'param_single_sample_type': 'tumor'],
                         it['sample'],
-                        [['NO_ID', 'NO_BAM.bam']],
-                        [[it['sample'], file(it['bam']).toRealPath()]],
+                        [['NO_ID', 'NO_BAM.bam', 'NO_TABLE.table']],
+                        [[it['sample'], file(it['bam']).toRealPath(), it['sample_alone_contamination'] ?: 'NO_TABLE.table']],
                         ['mutect2'] + params.call_sSNV.algorithm.findAll{ it == 'deepsomatic' }.unique()
                     ]}
                     .set{ input_ch_all_tumor_only }
@@ -121,8 +128,8 @@ workflow call_sSNV {
                         .map{[
                             ['param_force_normal_only': false, 'param_force_tumor_only': false, 'param_single_sample_type': 'tumor'],
                             it['sample'],
-                            [['NO_ID', 'NO_BAM.bam']],
-                            [[it['sample'], file(it['bam']).toRealPath()]],
+                            [['NO_ID', 'NO_BAM.bam', 'NO_TABLE.table']],
+                            [[it['sample'], file(it['bam']).toRealPath(), it['sample_alone_contamination'] ?: 'NO_TABLE.table']],
                             params.call_sSNV.algorithm.findAll{ it == 'mutect2' || it == 'deepsomatic' }.unique()
                         ]}
                         .set{ input_ch_tumor_only }
@@ -141,8 +148,12 @@ workflow call_sSNV {
                     [
                         ['param_force_normal_only': false, 'param_force_tumor_only': false, 'param_single_sample_type': null],
                         params.patient,
-                        [[it['normal']['sample'], file(it['normal']['bam']).toRealPath()]],
-                        [it['tumor']['sample'], file(it['tumor']['bam']).toRealPath()]
+                        [[it['normal']['sample'], file(it['normal']['bam']).toRealPath(), 'NO_TABLE.table']],
+                        [
+                            it['tumor']['sample'],
+                            file(it['tumor']['bam']).toRealPath(),
+                            it['tumor']['matched_normal_contamination'] ?: it['tumor']['sample_alone_contamination'] ?: 'NO_TABLE.table'
+                        ]
                     ]
                 }.groupTuple(by: [1,2])
                 .set{ input_ch_create_ssnv_yaml_multisample }
@@ -153,8 +164,12 @@ workflow call_sSNV {
                     [
                         ['param_force_normal_only': false, 'param_force_tumor_only': false, 'param_single_sample_type': null],
                         it['tumor']['sample'],
-                        [[it['normal']['sample'], file(it['normal']['bam']).toRealPath()]],
-                        [[it['tumor']['sample'], file(it['tumor']['bam']).toRealPath()]]
+                        [[it['normal']['sample'], file(it['normal']['bam']).toRealPath(), 'NO_TABLE.table']],
+                        [[
+                            it['tumor']['sample'],
+                            file(it['tumor']['bam']).toRealPath(),
+                            it['tumor']['matched_normal_contamination'] ?: it['tumor']['sample_alone_contamination'] ?: 'NO_TABLE.table'
+                        ]]
                     ]
                 }.set{ input_ch_create_ssnv_yaml_pairedsample }
 
