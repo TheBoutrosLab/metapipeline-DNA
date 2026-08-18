@@ -6,11 +6,17 @@ input:
       state: <state>  # normal or tumor
       BAM:
         path: </path/to/bam>  # Absolute path to BAM
+        sample_alone_contamination: </path/to/sample_alone_contamination>  # Optional
+        matched_normal_contamination: </path/to/matched_normal_contamination>  # Optional; tumor samples only
     <sample2>:  # Replace key with actual sample ID
       state: <state>  # normal or tumor
       BAM:
         path: </path/to/bam>  # Absolute path to BAM
+        sample_alone_contamination: </path/to/sample_alone_contamination>  # Optional
+        matched_normal_contamination: </path/to/matched_normal_contamination>  # Optional; tumor samples only
     <sample3>:  # Replace key with actual sample ID
       state: <state>  # normal or tumor
       BAM:
         path: </path/to/bam>  # Absolute path to BAM
+        sample_alone_contamination: </path/to/sample_alone_contamination>  # Optional
+        matched_normal_contamination: </path/to/matched_normal_contamination>  # Optional; tumor samples only
