@@ -10,8 +10,9 @@ workflow identify_recalibrate_bam_outputs {
         recalibrate_bam_out[0].normal.each { normal_sample ->
             String bam_file = identify_file("${recalibrate_bam_out[1]}/*GATK-*${sanitize_string(normal_sample)}*.bam");
             if (!params.sample_data[normal_sample]['recalibrate-BAM']['BAM']) {
+                String sample_alone_contamination = identify_file("${recalibrate_bam_out[2]}/GATK-*${sanitize_string(normal_sample)}_alone.table");
                 params.sample_data[normal_sample]['recalibrate-BAM']['BAM'] = bam_file;
-                params.sample_data[normal_sample]['recalibrate-BAM']['contamination_table'] = identify_file("${recalibrate_bam_out[2]}/GATK-*${sanitize_string(normal_sample)}_alone.table");
+                params.sample_data[normal_sample]['recalibrate-BAM']['sample_alone_contamination'] = sample_alone_contamination;
             } else {
                 // Normal file already found so delete any other normals - only triggered when running multiple samples in paired mode
 
@@ -22,9 +23,14 @@ workflow identify_recalibrate_bam_outputs {
             };
         };
         recalibrate_bam_out[0].tumor.each { tumor_sample ->
-            String table_suffix = (params.sample_mode == 'single') ? 'alone' : 'with-matched-normal'
+            String sample_alone_contamination = identify_file("${recalibrate_bam_out[2]}/GATK-*${sanitize_string(tumor_sample)}_alone.table");
+            String matched_normal_contamination = '';
+            if (params.sample_mode != 'single') {
+                matched_normal_contamination = identify_file("${recalibrate_bam_out[2]}/GATK-*${sanitize_string(tumor_sample)}_with-matched-normal.table");
+            }
             params.sample_data[tumor_sample]['recalibrate-BAM']['BAM'] = identify_file("${recalibrate_bam_out[1]}/*GATK-*${sanitize_string(tumor_sample)}*.bam");
-            params.sample_data[tumor_sample]['recalibrate-BAM']['contamination_table'] = identify_file("${recalibrate_bam_out[2]}/GATK-*${sanitize_string(tumor_sample)}_${table_suffix}.table");
+            params.sample_data[tumor_sample]['recalibrate-BAM']['sample_alone_contamination'] = sample_alone_contamination;
+            params.sample_data[tumor_sample]['recalibrate-BAM']['matched_normal_contamination'] = matched_normal_contamination;
         };
 
         return 'done'
