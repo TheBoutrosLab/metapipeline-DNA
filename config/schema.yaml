@@ -128,6 +128,11 @@ ssnv_run_all_tumor_only:
   required: true
   default: false
   help: 'Whether to run all given tumor samples through Mutect2 and DeepSomatic (if requested) regardless of run mode'
+use_contamination_tables:
+  type: 'Bool'
+  required: false
+  default: true
+  help: 'Whether to pass available contamination tables to call-sSNV'
 downstream_pipeline_order:
   type: 'List'
   required: false
