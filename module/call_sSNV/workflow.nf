@@ -93,7 +93,7 @@ workflow call_sSNV {
                     .map{[
                         ['param_force_normal_only': true, 'param_force_tumor_only': false, 'param_single_sample_type': 'normal'],
                         it['sample'],
-                        [[it['sample'], file(it['bam']).toRealPath(), it['sample_alone_contamination'] ?: 'NO_TABLE.table']],
+                        [[it['sample'], file(it['bam']).toRealPath(), 'NO_TABLE.table']],
                         [['NO_ID', 'NO_BAM.bam', 'NO_TABLE.table']],
                         ['mutect2']
                     ]}
