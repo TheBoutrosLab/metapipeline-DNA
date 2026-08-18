@@ -76,7 +76,7 @@ def create_read_groups(bam:Path, output:Path, sequencing_center:str,
 
     fields_map = {
         'read_group_identifier': 'ID',
-        'sequencing_center': 'LB',
+        'sequencing_center': 'CN',
         'library_identifier': 'LB',
         'platform_technology': 'PL',
         'platform_unit': 'PU',
@@ -85,6 +85,7 @@ def create_read_groups(bam:Path, output:Path, sequencing_center:str,
 
     # ID is required in header so no default value
     default_field_values = {
+        'CN': 'NA',
         'LB': 'NA',
         'PL': 'NA',
         'PU': 'NA',
