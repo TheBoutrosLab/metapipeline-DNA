@@ -35,7 +35,7 @@ process create_YAML_call_sSNV {
 
     exec:
     input_yaml = 'call_sSNV_input.yaml'
-    create_bam_entry = { bam_input ->
+    def create_bam_entry = { bam_input ->
         Map bam_entry = ['BAM': "${bam_input[1]}" as String]
         if (bam_input[2] && bam_input[2] != 'NO_TABLE.table') {
             bam_entry['contamination_table'] = "${bam_input[2]}" as String
