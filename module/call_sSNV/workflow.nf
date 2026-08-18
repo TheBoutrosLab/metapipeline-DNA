@@ -69,8 +69,8 @@ workflow call_sSNV {
                             'sample': s,
                             'state': s_data['state'],
                             'bam': s_data['recalibrate-BAM']['BAM'],
-                            'sample_alone_contamination': s_data['recalibrate-BAM']['sample_alone_contamination'],
-                            'matched_normal_contamination': s_data['recalibrate-BAM']['matched_normal_contamination']
+                            'sample_alone_contamination': params.use_contamination_tables ? s_data['recalibrate-BAM']['sample_alone_contamination'] : 'NO_TABLE.table',
+                            'matched_normal_contamination': params.use_contamination_tables ? s_data['recalibrate-BAM']['matched_normal_contamination'] : 'NO_TABLE.table'
                         ]);
                     };
                     return samples
