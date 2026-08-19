@@ -12,6 +12,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Use contamination estimates from recalibrate-BAM in call-sSNV for Mutect2
 
+### Changed
+
+- Call-sSV: `v8.5.0`
+
 ### Removed
 
 - Remove test configs and paths
