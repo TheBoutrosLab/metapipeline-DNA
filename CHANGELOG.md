@@ -15,6 +15,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 
 - Call-sSV: `v8.5.0`
+- Call-gSV: `v5.9.0`
 
 ### Removed
 
