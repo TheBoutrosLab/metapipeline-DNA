@@ -5,10 +5,11 @@ include { sanitize_string } from '../../external/pipeline-Nextflow-module/module
 * Create input YAML file for the call-sSNV pipeline.
 *
 * Input:
-*   A tuple of four items:
+*   A tuple of five items:
+*     @param META (Map): Metadata
 *     @param sample_id (String): Sample ID to be used for run
-*     @param normal_bam (String): Path to normal BAM
-*     @param tumor_bam (List): List of paths to tumor BAMs
+*     @param normal_bam (List): Normal sample ID, BAM path, and optional contamination table
+*     @param tumor_bam (List): Lists of tumor sample IDs, BAM paths, and optional contamination tables
 *     @param algorithms (String): Comma-separated list of algorithms to run
 *
 * Output:
@@ -34,8 +35,15 @@ process create_YAML_call_sSNV {
 
     exec:
     input_yaml = 'call_sSNV_input.yaml'
-    param_tumor_bams = tumor_bam.collect{ ['BAM': "${it[1]}" as String] }
-    param_normal_bam = normal_bam.collect{ ['BAM': "${it[1]}" as String] }
+    def create_bam_entry = { bam_input ->
+        Map bam_entry = ['BAM': "${bam_input[1]}" as String]
+        if (bam_input[2] && bam_input[2] != 'NO_TABLE.table') {
+            bam_entry['contamination_table'] = "${bam_input[2]}" as String
+        }
+        return bam_entry
+    }
+    param_tumor_bams = tumor_bam.collect{ a_tumor_bam -> create_bam_entry(a_tumor_bam) }
+    param_normal_bam = normal_bam.collect{ a_normal_bam -> create_bam_entry(a_normal_bam) }
 
     param_force_normal_only = META.param_force_normal_only
     param_force_tumor_only = META.param_force_tumor_only

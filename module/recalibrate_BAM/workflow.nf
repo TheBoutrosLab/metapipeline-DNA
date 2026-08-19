@@ -68,6 +68,13 @@ workflow recalibrate_BAM {
                     if (!['VCF', 'SRC'].contains(params.input_type)) {
                         params.sample_data.each{ s, s_data ->
                             s_data[this_pipeline]['BAM'] = s_data['align-DNA'][params.primary_aligner]['BAM'];
+                            if (s_data['original_data'] instanceof Map) {
+                                ['sample_alone_contamination', 'matched_normal_contamination'].each { contamination_key ->
+                                    if (s_data['original_data'][contamination_key]) {
+                                        s_data[this_pipeline][contamination_key] = s_data['original_data'][contamination_key];
+                                    }
+                                }
+                            }
                         };
                     }
                     return 'done'

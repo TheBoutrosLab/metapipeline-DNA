@@ -128,6 +128,11 @@ ssnv_run_all_tumor_only:
   required: true
   default: false
   help: 'Whether to run all given tumor samples through Mutect2 and DeepSomatic (if requested) regardless of run mode'
+use_contamination_tables:
+  type: 'Bool'
+  required: false
+  default: true
+  help: 'Whether to pass available contamination tables to call-sSNV'
 downstream_pipeline_order:
   type: 'List'
   required: false
@@ -331,6 +336,16 @@ input:
                   mode: 'r'
                   required: true
                   help: 'Path to the CRAM file'
+                sample_alone_contamination:
+                  type: 'Path'
+                  mode: 'r'
+                  required: false
+                  help: 'Path to the sample-alone contamination table'
+                matched_normal_contamination:
+                  type: 'Path'
+                  mode: 'r'
+                  required: false
+                  help: 'Path to the matched-normal contamination table; tumor samples only'
             BAM:
               type: 'Namespace'
               required: false
@@ -341,6 +356,16 @@ input:
                   mode: 'r'
                   required: true
                   help: 'Path to the BAM file'
+                sample_alone_contamination:
+                  type: 'Path'
+                  mode: 'r'
+                  required: false
+                  help: 'Path to the sample-alone contamination table'
+                matched_normal_contamination:
+                  type: 'Path'
+                  mode: 'r'
+                  required: false
+                  help: 'Path to the matched-normal contamination table; tumor samples only'
             FASTQ:
               type: 'EntryList'
               required: false
