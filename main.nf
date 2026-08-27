@@ -239,4 +239,8 @@ workflow {
     call_metapipeline_DNA(create_config_metapipeline_DNA.out.metapipeline_dna_input)
 
     check_process_status(call_metapipeline_DNA.out.submit_out)
+
+    workflow.onComplete = {
+        WorkflowFinalizer.completeWorkflow(workflow, params);
+    }
 }
