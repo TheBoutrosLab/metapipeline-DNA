@@ -13,6 +13,9 @@ updates:
           - "*/pipeline-Nextflow-config"
           - "*/pipeline-Nextflow-module"
           - "lib"
+    allow:
+      - dependency-name: "external/pipeline-*"
+      - dependency-name: "lib"
   - package-ecosystem: github-actions
     directory: /
     schedule:
