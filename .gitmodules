@@ -76,3 +76,6 @@
 [submodule "external/pipeline-calculate-mtDNA-CopyNumber"]
 	path = external/pipeline-calculate-mtDNA-CopyNumber
 	url = git@github.com:TheBoutrosLab/pipeline-calculate-mtDNA-CopyNumber.git
+[submodule "lib"]
+	path = lib
+	url = git@github.com:TheBoutrosLab/pipeline-Nextflow-lib.git
