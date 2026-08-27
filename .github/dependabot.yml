@@ -4,7 +4,7 @@ updates:
   - package-ecosystem: "gitsubmodule"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily"
     groups:
       # Group pipeline modules together for pull requests
       # "pipeline-submodules" is an arbitrary name
