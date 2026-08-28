@@ -106,6 +106,8 @@ process create_config_metapipeline_DNA {
         }
     }
 
+    general_params['logger_passthrough_metapipeline_output_dir'] = params['final_output_dir']
+
     Map passthrough_params = ['passthrough_params': general_params]
 
     json_params = JsonOutput.prettyPrint(JsonOutput.toJson(params.pipeline_params + passthrough_params + sample_data + pipeline_predecessor + pipeline_interval_params))
