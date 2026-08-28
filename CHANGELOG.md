@@ -8,6 +8,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+
+- Add genetic sex `unknown` as a valid value
+
 ### Changed
 
 - Align-DNA: `v11.5.0`
