@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Align-DNA: `v11.5.0`
+- Calculate-targeted-coverage: `v2.3.0`
+- Call-gSNP: `v12.3.0`
+- Call-gSV: `v5.10.0`
+- Call-mtSNV: `v6.3.0`
+- Call-sCNA: `v1.1.0`
+- Call-sSNV: `v9.6.0`
+- Call-sSV: `v8.6.0`
+- Convert-BAM2FASTQ: `v1.3.0`
+- Generate-SQC-BAM: `v1.5.0`
+- Recalibrate-BAM: `v2.5.0`
+- StableLift: `v2.3.0`
+- Calculate-mtDNA-CopyNumber: `v1.3.0`
+- Tar process logs on success
+
 ## [10.1.0] - 2026-08-19
 
 ### Added
