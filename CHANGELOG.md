@@ -12,6 +12,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Calculate-mtDNA-CopyNumer: `v1.4.0`
 
+### Fixed
+
+- Use correct param name for generate-SQC-BAM `algorithm` in template config
+- Include `DeepSomatic` in template config
+
 ## [10.2.0] - 2026-08-28
 
 ### Added
