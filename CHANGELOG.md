@@ -12,6 +12,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Calculate-mtDNA-CopyNumer: `v1.4.0`
 - Call-sCNA: `v2.0.0`
+- Pass `genetic_sex` to call-sCNA for Battenberg
 
 ### Fixed
 
