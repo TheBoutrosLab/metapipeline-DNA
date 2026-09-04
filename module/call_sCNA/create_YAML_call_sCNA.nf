@@ -17,7 +17,7 @@ process create_YAML_call_sCNA {
 
     input:
         tuple(
-            val(tumor_id), val(normal_bam), val(tumor_bam)
+            val(tumor_id), val(genetic_sex), val(normal_bam), val(tumor_bam)
         )
 
     output:
@@ -28,6 +28,7 @@ process create_YAML_call_sCNA {
 
     input_map = [
             'patient_id': tumor_id,
+            'genetic_sex': genetic_sex,
             'input': [
                 'BAM': [
                     'normal': [ "${normal_bam}" as String ],
