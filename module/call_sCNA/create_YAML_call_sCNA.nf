@@ -32,8 +32,9 @@ process create_YAML_call_sCNA {
         and only accepting XY or XX.
         This avoids validation from failing with unknown genetic_sex when only FACETS is requested
     */
+    boolean battenberg_enabled = params.call_sCNA.metapipeline_arg_map.algorithm.contains('Battenberg')
     String resolved_sex = genetic_sex
-    if (!params.call_sCNA.metapipeline_arg_map.algorithm.contains('Battenberg')) {
+    if (!battenberg_enabled && !(genetic_sex in ['XX', 'XY'])) {
         resolved_sex = 'XY'
     }
 
