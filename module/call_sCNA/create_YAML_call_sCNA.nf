@@ -34,7 +34,7 @@ process create_YAML_call_sCNA {
     */
     boolean battenberg_enabled = params.call_sCNA.metapipeline_arg_map.algorithm.contains('Battenberg')
     String resolved_sex = genetic_sex
-    if (!battenberg_enabled && !(genetic_sex in ['XX', 'XY'])) {
+    if (!battenberg_enabled && !['XX', 'XY'].contains(genetic_sex)) {
         resolved_sex = 'XY'
     }
 
