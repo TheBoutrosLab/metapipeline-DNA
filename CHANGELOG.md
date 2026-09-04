@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 
 - Calculate-mtDNA-CopyNumer: `v1.4.0`
+- Call-sCNA: `v2.0.0`
 
 ### Fixed
 
