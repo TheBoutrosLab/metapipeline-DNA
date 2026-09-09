@@ -9,12 +9,21 @@
     }
   },
   {
-    "version": "v10.2.0",
-    "title": "v10.2.0",
+    "version": "v10.3.0",
+    "title": "v10.3.0",
     "aliases": [
       "latest",
       "release-candidate"
     ],
+    "properties": {
+      "commit": "a4a0089d2dd431811396401f7cdb7bc1e55bea76",
+      "date": "2026-09-09T13:09:18-07:00"
+    }
+  },
+  {
+    "version": "v10.2.0",
+    "title": "v10.2.0",
+    "aliases": [],
     "properties": {
       "commit": "d451bee0f4a9712a56880c27461e6b4a7c3ba881",
       "date": "2026-08-28T20:11:17-07:00"
