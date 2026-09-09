@@ -17,7 +17,7 @@ process create_YAML_call_sCNA {
 
     input:
         tuple(
-            val(tumor_id), val(normal_bam), val(tumor_bam)
+            val(tumor_id), val(genetic_sex), val(normal_bam), val(tumor_bam)
         )
 
     output:
@@ -26,8 +26,21 @@ process create_YAML_call_sCNA {
     exec:
     input_yaml = 'call_sCNA_input.yaml'
 
+
+    /**
+        Default to XY if Battenberg is not being run to avoid errors with call-sCNA requiring the genetic_sex param
+        and only accepting XY or XX.
+        This avoids validation from failing with unknown genetic_sex when only FACETS is requested
+    */
+    boolean battenberg_enabled = params.call_sCNA.metapipeline_arg_map.algorithm.contains('Battenberg')
+    String resolved_sex = genetic_sex
+    if (!battenberg_enabled && !['XX', 'XY'].contains(genetic_sex)) {
+        resolved_sex = 'XY'
+    }
+
     input_map = [
             'patient_id': tumor_id,
+            'genetic_sex': resolved_sex,
             'input': [
                 'BAM': [
                     'normal': [ "${normal_bam}" as String ],
