@@ -449,6 +449,7 @@ input:
                     - HaplotypeCaller
                     - DeepVariant
                     - Mutect2
+                    - DeepSomatic
                     - MuSE
                     - Strelka2
                     - SomaticSniper
