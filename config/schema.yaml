@@ -446,6 +446,7 @@ input:
                   required: true
                   choices:
                     - HaplotypeCaller
+                    - DeepVariant
                     - Mutect2
                     - MuSE
                     - Strelka2
