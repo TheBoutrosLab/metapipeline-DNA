@@ -57,6 +57,7 @@ process run_annotate_VCF {
         --work_dir ${params.work_dir} \
         --output_dir \$(pwd) \
         --dataset_id ${params.project_id} \
+        -profile "${params.containerization_system}" \
         -c ${moduleDir}/default.config ${weblog_args}
 
     capture_exit_code
