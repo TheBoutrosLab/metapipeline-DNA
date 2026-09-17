@@ -92,51 +92,51 @@ Each worker node performs the following steps:
 ### 1. convert-BAM2FASTQ
 *Optional*: Only run when BAM or CRAM are provided as input and realignment is not overriden.
 
-Aligned data is back-converted to FASTQ using [pipeline-convert-BAM2FASTQ](https://uclahs-cds.github.io/pipeline-convert-BAM2FASTQ/).
+Aligned data is back-converted to FASTQ using [pipeline-convert-BAM2FASTQ](https://theboutroslab.github.io/pipeline-convert-BAM2FASTQ/).
 
 ### 2. align-DNA
 
-FASTQ data is (re)aligned to the genome on a per-sample basis using [pipeline-align-DNA](https://uclahs-cds.github.io/pipeline-align-DNA/).
+FASTQ data is (re)aligned to the genome on a per-sample basis using [pipeline-align-DNA](https://theboutroslab.github.io/pipeline-align-DNA/).
 
 ### 3. calculate-targeted-coverage
 
-For targeted or exome sequencing, depth for the target regions is assessed along with off-target coverage enrichment using [pipeline-calculate-targeted-coverage](https://uclahs-cds.github.io/pipeline-calculate-targeted-coverage/).
+For targeted or exome sequencing, depth for the target regions is assessed along with off-target coverage enrichment using [pipeline-calculate-targeted-coverage](https://theboutroslab.github.io/pipeline-calculate-targeted-coverage/).
 
 ### 4. recalibrate-BAM
 
-The aligned BAM undergoes INDEL realignment and base quality score recalibration using [pipeline-recalibrate-BAM](https://uclahs-cds.github.io/pipeline-recalibrate-BAM/).
+The aligned BAM undergoes INDEL realignment and base quality score recalibration using [pipeline-recalibrate-BAM](https://theboutroslab.github.io/pipeline-recalibrate-BAM/).
 
 ### 5. generate-SQC-BAM
 
-Quality control is performed on the recalibrated BAM using [pipeline-generate-SQC-BAM](https://uclahs-cds.github.io/pipeline-generate-SQC-BAM/).
+Quality control is performed on the recalibrated BAM using [pipeline-generate-SQC-BAM](https://theboutroslab.github.io/pipeline-generate-SQC-BAM/).
 
 ### 6. call-gSNP
 
-Germline SNPs are called using [pipeline-call-gSNP](https://uclahs-cds.github.io/pipeline-call-gSNP/).
+Germline SNPs are called using [pipeline-call-gSNP](https://theboutroslab.github.io/pipeline-call-gSNP/).
 
 ### 7. call-sSNV
 
-Somatic SNVs are called using [pipeline-call-sSNV](https://uclahs-cds.github.io/pipeline-call-sSNV/).
+Somatic SNVs are called using [pipeline-call-sSNV](https://theboutroslab.github.io/pipeline-call-sSNV/).
 
 ### 8. call-mtSNV
 
-Mitochondrial SNVs are called using [pipeline-call-mtSNV](https://uclahs-cds.github.io/pipeline-call-mtSNV/).
+Mitochondrial SNVs are called using [pipeline-call-mtSNV](https://theboutroslab.github.io/pipeline-call-mtSNV/).
 
 ### 9. call-gSV
 
-Germline SVs are called using [pipeline-call-gSV](https://uclahs-cds.github.io/pipeline-call-gSV/).
+Germline SVs are called using [pipeline-call-gSV](https://theboutroslab.github.io/pipeline-call-gSV/).
 
 ### 10. call-sSV
 
-Somatic SVs are called using [pipeline-call-sSV](https://uclahs-cds.github.io/pipeline-call-sSV/).
+Somatic SVs are called using [pipeline-call-sSV](https://theboutroslab.github.io/pipeline-call-sSV/).
 
 ### 11. call-sCNA
 
-Somatic CNAs are called using [pipeline-call-sCNA](https://uclahs-cds.github.io/pipeline-call-sCNA/).
+Somatic CNAs are called using [pipeline-call-sCNA](https://theboutroslab.github.io/pipeline-call-sCNA/).
 
 ### 12. call-SRC
 
-Subclonal reconstruction is performed using [pipeline-call-SRC](https://uclahs-cds.github.io/pipeline-call-SRC/).
+Subclonal reconstruction is performed using [pipeline-call-SRC](https://theboutroslab.github.io/pipeline-call-SRC/).
 
 ## Configuration
 
