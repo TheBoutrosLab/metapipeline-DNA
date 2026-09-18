@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Annotate-VCF: `v1.1.0`
+- Add support for annotating gSNPs and sSNVs
+
 ## [10.3.0] - 2026-09-09
 
 ### Changed
