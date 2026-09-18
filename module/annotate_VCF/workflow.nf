@@ -25,6 +25,11 @@ workflow annotate_VCF {
                             return;
                         }
                         s_data["call-${mode}"].each { tool, data ->
+                            if (['DeepVariant', 'DeepSomatic'].contains(tool)) {
+                                // DeepVariant and DeepSomatic variants cause errors with annotation
+                                // so skip them until post-processing to fix annotation for their variant calls
+                                return;
+                            }
                             samples.add([
                                 'mode': mode,
                                 'tool': tool,

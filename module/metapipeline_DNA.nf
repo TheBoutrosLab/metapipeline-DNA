@@ -95,6 +95,7 @@ workflow {
     *   Annotate-VCF
     */
     call_gSNP.out.completion_signal
+        .mix(call_sSNV.out.completion_signal)
         .collect()
         .map{ 'done' }
         .set{ annotate_vcf_ready }

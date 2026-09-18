@@ -179,6 +179,7 @@ requested_pipelines:
     # - StableLiftsSV
     - StableLiftgSNP
     - annotate-gSNP
+    - annotate-sSNV
     - call-GeneticAncestry
     - calculate-mtDNA-CopyNumber
   help: 'List of pipelines to run'
@@ -446,7 +447,9 @@ input:
                   required: true
                   choices:
                     - HaplotypeCaller
+                    - DeepVariant
                     - Mutect2
+                    - DeepSomatic
                     - MuSE
                     - Strelka2
                     - SomaticSniper

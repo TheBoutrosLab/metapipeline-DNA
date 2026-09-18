@@ -20,7 +20,7 @@ workflow call_gSNP {
         if (!params.call_gSNP.is_pipeline_enabled) {
             modification_signal.until{ it == 'done' }.ifEmpty('done')
                 .map{ it ->
-                    def tools_to_move = ['HaplotypeCaller'];
+                    def tools_to_move = ['HaplotypeCaller', 'DeepVariant'];
                     params.sample_data.each { s, s_data ->
                         if (!(s_data["original_data"] instanceof Map)) {
                             return;

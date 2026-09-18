@@ -29,7 +29,7 @@ workflow call_sSNV {
                             };
                         };
                     } else {
-                        def tools_to_move = ['Mutect2', 'MuSE', 'SomaticSniper', 'Strelka2', 'BCFtools-Intersect'];
+                        def tools_to_move = ['Mutect2', 'DeepSomatic', 'MuSE', 'SomaticSniper', 'Strelka2', 'BCFtools-Intersect'];
                         params.sample_data.each { s, s_data ->
                             if (!(s_data["original_data"] instanceof Map)) {
                                 return;
