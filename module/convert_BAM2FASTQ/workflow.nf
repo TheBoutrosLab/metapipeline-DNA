@@ -24,13 +24,13 @@ workflow convert_BAM2FASTQ {
         def this_pipeline = 'convert-BAM2FASTQ'
         List samples = [];
         params.sample_data.each { s, s_data ->
-            samples << ['patient': s_data.patient, 'sample': s, 'state': s_data.state, 'bam': s_data.original_data.path]
+            samples << ['patient': s_data.patient, 'sample': s, 'state': s_data.state, 'bam': s_data.original_data.path, 'type': s_data.original_data.type]
         }
 
         ich = Channel.from(samples)
-            .map{ tuple(it.patient, it.sample, it.state, file(it.bam)) }
+            .map{ tuple(it.patient, it.sample, it.state, file(it.bam), it.type) }
 
-        extract_read_groups(ich)
+        extract_read_groups(ich.map{ patient, sample, state, bam, input_type -> tuple(patient, sample, state, bam) })
         create_YAML_convert_BAM2FASTQ(ich)
         call_convert_BAM2FASTQ(create_YAML_convert_BAM2FASTQ.out.convert_bam2fastq_yaml)
 

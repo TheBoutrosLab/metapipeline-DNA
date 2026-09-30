@@ -3,7 +3,7 @@ import org.yaml.snakeyaml.Yaml
 * Create input YAML file for the convert-BAM2FASTQ pipeline.
 *
 * Input:
-*   A tuple consisting of patient_id, sample_id, sample state, and the path to the input BAM
+*   A tuple consisting of patient_id, sample_id, sample state, the input path, and its declared BAM/CRAM type
 *
 * Output:
 *   @return A path to the input YAML
@@ -14,7 +14,7 @@ process create_YAML_convert_BAM2FASTQ {
         mode: "copy"
 
     input:
-        tuple val(patient), val(sample), val(state), val(bam)
+        tuple val(patient), val(sample), val(state), val(bam), val(input_type)
 
     output:
         tuple val(patient), val(sample), val(state), path(input_yaml), emit: convert_bam2fastq_yaml
@@ -25,7 +25,7 @@ process create_YAML_convert_BAM2FASTQ {
     input_map = [
         'patient_id': "${patient}" as String,
         'input': [
-            'BAM': [
+            ("${input_type}" as String): [
                 ("${state}" as String): [[
                     'path': "${bam}" as String,
                     'id': "${sample}" as String
