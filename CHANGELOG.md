@@ -8,6 +8,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Changed
+
+- Call-sSNV: `v9.7.0`
+
 ## [10.4.0] - 2026-09-18
 
 ### Added
