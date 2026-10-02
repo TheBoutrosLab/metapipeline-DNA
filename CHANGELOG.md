@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 
 - Call-sSNV: `v9.7.0`
+- Convert-BAM2FASTQ: `v1.3.1`
 
 ## [10.4.0] - 2026-09-18
 

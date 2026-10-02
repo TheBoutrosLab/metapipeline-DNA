@@ -314,9 +314,11 @@ input:
 | patient | string | yes | Identifier for the patient |
 | sample | string | yes | Identifier for the sample |
 | state | string | yes | Must be either "tumor" or "normal" |
-| path | path | yes | Absolute path to the sample BAM file |
+| path | path | yes | Absolute path to the sample BAM or CRAM file |
 
 See this [template](input/template-input-BAM.csv) for CSV format and this [template](input/template-input-BAM.yaml) for YAML format.
+
+For CSV input, the alignment type is inferred from the `.bam` or `.cram` file extension, case-insensitively. Other extensions are rejected. BAM and CRAM samples can be included in the same CSV, but each sample must have only one alignment input. See the [CRAM CSV template](input/template-input-CRAM.csv) for an example. YAML input uses the declared `BAM` or `CRAM` key instead of the filename.
 
 ### Input FASTQ
 
