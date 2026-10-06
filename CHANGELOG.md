@@ -10,6 +10,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
+- Include run identifier in job name
 - Call-sCNA: `v2.0.1`
 - Annotate-VCF: `v1.1.1`
 
