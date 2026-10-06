@@ -14,6 +14,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Call-sCNA: `v2.0.1`
 - Annotate-VCF: `v1.1.1`
 - Call-sSV: `v8.7.1`
+- Calculate-targeted-coverage: `v2.3.1`
 
 ## [10.5.0] - 2026-10-02
 
