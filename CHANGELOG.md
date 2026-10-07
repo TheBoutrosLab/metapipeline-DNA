@@ -19,6 +19,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Call-mtSNV: `v6.4.2`
 - Call-sSNV: `v9.7.1`
 - Generate-SQC-BAM: `v1.5.1`
+- Align-DNA: `v11.5.1`
 
 ## [10.5.0] - 2026-10-02
 
