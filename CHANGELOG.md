@@ -17,6 +17,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Calculate-targeted-coverage: `v2.3.1`
 - Call-gSV: `v5.11.1`
 - Call-mtSNV: `v6.4.2`
+- Call-sSNV: `v9.7.1`
 
 ## [10.5.0] - 2026-10-02
 
