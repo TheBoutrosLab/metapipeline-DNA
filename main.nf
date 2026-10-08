@@ -7,6 +7,11 @@ nextflow.enable.dsl = 2
 
 import groovy.json.JsonOutput
 
+// Quote a value as a literal shell word, including any embedded single quotes.
+def shellQuote(value) {
+    return "'" + value.toString().replace("'", "'\"'\"'") + "'"
+}
+
 // Log info here
 log.info """\
     =================================================
@@ -212,6 +217,9 @@ process check_process_status {
     path(".command.*")
 
     shell:
+    quoted_work_dir = shellQuote(work_dir)
+    quoted_sbatch_ret = shellQuote(sbatch_ret)
+    quoted_identifier = shellQuote(identifier)
     template 'status_check.sh'
 }
 
