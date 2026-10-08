@@ -1,10 +1,15 @@
 #!/bin/bash
 
-if [ "!{sbatch_ret}" != "-1" ]
+# These template values already include shell quoting.
+work_dir=!{quoted_work_dir}
+sbatch_ret=!{quoted_sbatch_ret}
+identifier=!{quoted_identifier}
+
+if [ "$sbatch_ret" != "-1" ]
 then
-    if echo "!{sbatch_ret}" | grep -q "Submitted batch job"
+    if printf '%s\n' "$sbatch_ret" | grep -q "Submitted batch job"
     then
-        job_id=$(echo "!{sbatch_ret}" | cut -d ' ' -f 4)
+        job_id=$(printf '%s\n' "$sbatch_ret" | cut -d ' ' -f 4)
         job_queue=$(squeue --noheader --format="%i" || echo "failed")
 
         while [[ "$job_queue" == "failed" ]] || echo "$job_queue" | grep "^$job_id$" &> /dev/null
@@ -17,7 +22,7 @@ then
         then
             :
         else
-            echo "Process in '!{work_dir}' with ID: '!{identifier}' failed with non-zero exit code or the status could not be checked."
+            printf "Process in '%s' with ID: '%s' failed with non-zero exit code or the status could not be checked.\n" "$work_dir" "$identifier"
         fi
     fi
 fi
@@ -25,7 +30,7 @@ fi
 pipeline_failures=""
 
 exit_code_regex="^(.+)\\.([0-9]+)"
-for pipeline_exit_path in "!{work_dir}"/PIPELINEEXITSTATUS/*
+for pipeline_exit_path in "$work_dir"/PIPELINEEXITSTATUS/*
 do
     pipeline_exit_file=$(basename "$pipeline_exit_path")
     if [[ $pipeline_exit_file =~ $exit_code_regex ]]
@@ -41,5 +46,5 @@ done
 
 if [ -n "$pipeline_failures" ]
 then
-    echo "Process in '!{work_dir}' with ID: '!{identifier}' had failures in the following pipelines: $pipeline_failures"
+    printf "Process in '%s' with ID: '%s' had failures in the following pipelines: %s\n" "$work_dir" "$identifier" "$pipeline_failures"
 fi
