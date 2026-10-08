@@ -17,7 +17,7 @@ then
         then
             :
         else
-            echo "Process in '!{work_dir}' failed with non-zero exit code or the status could not be checked."
+            echo "Process in '!{work_dir}' with ID: '!{identifier}' failed with non-zero exit code or the status could not be checked."
         fi
     fi
 fi
@@ -41,5 +41,5 @@ done
 
 if [ -n "$pipeline_failures" ]
 then
-    echo "Process in '!{work_dir}' had failures in the following pipelines: $pipeline_failures"
+    echo "Process in '!{work_dir}' with ID: '!{identifier}' had failures in the following pipelines: $pipeline_failures"
 fi
