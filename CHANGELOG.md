@@ -23,6 +23,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - StableLift: `v2.3.1`
 - Call-gSNP: `v12.3.1`
 - Recalibrate-BAM: `v2.5.1`
+- Calculate-mtDNA-CopyNumber: `v1.4.1`
 
 ## [10.5.0] - 2026-10-02
 
