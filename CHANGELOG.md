@@ -24,6 +24,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Call-gSNP: `v12.3.1`
 - Recalibrate-BAM: `v2.5.1`
 - Calculate-mtDNA-CopyNumber: `v1.4.1`
+- Convert-BAM2FASTQ: `v1.4.0`
 
 ## [10.5.0] - 2026-10-02
 
