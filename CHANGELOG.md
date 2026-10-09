@@ -11,7 +11,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 
 - Include run identifier in job name and in status check messages
-- Call-sCNA: `v2.0.1`
+- Call-sCNA: `v2.0.2`
 - Annotate-VCF: `v1.1.2`
 - Call-sSV: `v8.7.1`
 - Calculate-targeted-coverage: `v2.3.2`
