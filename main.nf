@@ -7,6 +7,11 @@ nextflow.enable.dsl = 2
 
 import groovy.json.JsonOutput
 
+// Quote a value as a literal shell word, including any embedded single quotes.
+def shellQuote(value) {
+    return "'" + value.toString().replace("'", "'\"'\"'") + "'"
+}
+
 // Log info here
 log.info """\
     =================================================
@@ -143,7 +148,7 @@ process call_metapipeline_DNA {
         )
 
     output:
-        tuple env(CURRENT_WORK_DIR), env(SBATCH_RET), emit: submit_out
+        tuple env(CURRENT_WORK_DIR), env(SBATCH_RET), val(identifier), emit: submit_out
         path(".command.*")
 
     script:
@@ -204,7 +209,7 @@ process check_process_status {
         saveAs: { "${task.process}/${file(work_dir).getParent().getFileName()}-${file(work_dir).getFileName()}/log${file(it).getName()}" }
 
     input:
-        tuple val(work_dir), val(sbatch_ret)
+        tuple val(work_dir), val(sbatch_ret), val(identifier)
 
     debug true
 
@@ -212,6 +217,9 @@ process check_process_status {
     path(".command.*")
 
     shell:
+    quoted_work_dir = shellQuote(work_dir)
+    quoted_sbatch_ret = shellQuote(sbatch_ret)
+    quoted_identifier = shellQuote(identifier)
     template 'status_check.sh'
 }
 
