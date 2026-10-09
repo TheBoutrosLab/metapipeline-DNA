@@ -17,7 +17,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Calculate-targeted-coverage: `v2.3.2`
 - Call-gSV: `v5.11.2`
 - Call-mtSNV: `v6.4.3`
-- Call-sSNV: `v9.7.1`
+- Call-sSNV: `v9.7.2`
 - Generate-SQC-BAM: `v1.5.1`
 - Align-DNA: `v11.5.2`
 - StableLift: `v2.3.2`
