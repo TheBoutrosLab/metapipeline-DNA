@@ -21,7 +21,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Generate-SQC-BAM: `v1.5.1`
 - Align-DNA: `v11.5.1`
 - StableLift: `v2.3.2`
-- Call-gSNP: `v12.3.1`
+- Call-gSNP: `v12.3.2`
 - Recalibrate-BAM: `v2.5.1`
 - Calculate-mtDNA-CopyNumber: `v1.4.2`
 
