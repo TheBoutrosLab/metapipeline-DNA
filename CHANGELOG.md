@@ -8,6 +8,23 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Changed
+
+- Include run identifier in job name
+- Call-sCNA: `v2.0.1`
+- Annotate-VCF: `v1.1.1`
+- Call-sSV: `v8.7.1`
+- Calculate-targeted-coverage: `v2.3.1`
+- Call-gSV: `v5.11.1`
+- Call-mtSNV: `v6.4.3`
+- Call-sSNV: `v9.7.1`
+- Generate-SQC-BAM: `v1.5.1`
+- Align-DNA: `v11.5.1`
+- StableLift: `v2.3.1`
+- Call-gSNP: `v12.3.1`
+- Recalibrate-BAM: `v2.5.1`
+- Calculate-mtDNA-CopyNumber: `v1.4.1`
+
 ## [10.5.0] - 2026-10-02
 
 ### Changed

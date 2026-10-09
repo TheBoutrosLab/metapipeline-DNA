@@ -133,6 +133,8 @@ process call_metapipeline_DNA {
         pattern: ".command.*",
         saveAs: { "${task.process}/${identifier}-${new StringBuilder(task.hash).insert(2, '-').toString()}/log${file(it).getName()}" }
 
+    tag { identifier }
+
     input:
         tuple(
             val(patient),
