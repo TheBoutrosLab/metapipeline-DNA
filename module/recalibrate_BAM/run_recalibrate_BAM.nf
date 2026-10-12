@@ -34,13 +34,20 @@ process run_recalibrate_BAM {
         )
 
     output:
-        tuple val(sample_states), path(output_directory), path(qc_directory), emit: identify_recalibrate_bam_out
+        tuple val(sample_states), path(output_directory), path(qc_directory), val(manifest_context), path(resolved_params_json), emit: identify_recalibrate_bam_out
         file "recalibrate-BAM-*/*"
         file ".command.*"
 
     script:
     output_directory = "recalibrate-BAM-*/${sample_id_for_recalibrate}/GATK-*/output"
     qc_directory = "recalibrate-BAM-*/${sample_id_for_recalibrate}/GATK-*/QC/contamination_qc/run_CalculateContamination_GATK"
+    resolved_params_json = "recalibrate-BAM-*/${sample_id_for_recalibrate}/log-recalibrate-BAM-*/nextflow-log/params.json"
+    manifest_context = [
+        task_work_dir: task.workDir.toString(),
+        publish_root: "${params.output_dir}/output".toString(),
+        run_id: params.task_hash,
+        workflow_identifier: (params.sample_mode == 'single' ? sample_id_for_recalibrate : params.patient)
+    ]
     String params_to_dump = combine_input_with_params(params.recalibrate_BAM.metapipeline_arg_map, new File(input_yaml.toRealPath().toString()))
     String weblog_args = generate_weblog_args()
     """
