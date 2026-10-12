@@ -95,7 +95,7 @@ finalization_cluster_options:
   allow_empty: true
   help: 'Additional finalization scheduler options, separate from child-job options'
 finalization_max_conversions:
-  type: 'Integer'
+  type: 'PositiveInteger'
   required: true
   help: 'Maximum concurrent conversion tasks per metapipeline run; must be positive'
 status_email_address:
