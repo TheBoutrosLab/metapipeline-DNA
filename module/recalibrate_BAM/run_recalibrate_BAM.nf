@@ -34,7 +34,8 @@ process run_recalibrate_BAM {
         )
 
     output:
-        tuple val(sample_states), path(output_directory), path(qc_directory), val(manifest_context), path(resolved_params_json), emit: identify_recalibrate_bam_out
+        // task.workDir is available when outputs are collected, after script rendering.
+        tuple val(sample_states), path(output_directory), path(qc_directory), val({ manifest_context + [task_work_dir: task.workDir.toString()] }), path(resolved_params_json), emit: identify_recalibrate_bam_out
         file "recalibrate-BAM-*/*"
         file ".command.*"
 
@@ -43,7 +44,6 @@ process run_recalibrate_BAM {
     qc_directory = "recalibrate-BAM-*/${sample_id_for_recalibrate}/GATK-*/QC/contamination_qc/run_CalculateContamination_GATK"
     resolved_params_json = "recalibrate-BAM-*/${sample_id_for_recalibrate}/log-recalibrate-BAM-*/nextflow-log/params.json"
     manifest_context = [
-        task_work_dir: task.workDir.toString(),
         publish_root: "${params.output_dir}/output".toString(),
         run_id: params.task_hash,
         workflow_identifier: (params.sample_mode == 'single' ? sample_id_for_recalibrate : params.patient)

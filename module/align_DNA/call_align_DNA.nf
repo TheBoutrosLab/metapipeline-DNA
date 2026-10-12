@@ -24,14 +24,14 @@ process call_align_DNA {
         )
     
     output:
-        tuple val(sample), path(output_directory), val(manifest_context), emit: align_dna_output_directory
+        // task.workDir is available when outputs are collected, after script rendering.
+        tuple val(sample), path(output_directory), val({ manifest_context + [task_work_dir: task.workDir.toString()] }), emit: align_dna_output_directory
         file "align-DNA-*/*"
         file ".command.*"
 
     script:
     output_directory = "align-DNA-*/${sample}"
     manifest_context = [
-        task_work_dir: task.workDir.toString(),
         publish_root: "${params.output_dir}/output".toString(),
         run_id: params.task_hash,
         workflow_identifier: (params.sample_mode == 'single' ? sample : patient)
