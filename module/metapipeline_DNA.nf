@@ -17,7 +17,7 @@ include { stable_lift } from "${moduleDir}/StableLift/workflow"
 include { annotate_VCF } from "${moduleDir}/annotate_VCF/workflow"
 include { call_GeneticAncestry } from "${moduleDir}/call_GeneticAncestry/workflow"
 include { calculate_mtDNA_CopyNumber } from "${moduleDir}/calculate_mtDNA_CopyNumber/workflow"
-include { create_directory; mark_pipeline_complete } from "${moduleDir}/pipeline_status"
+include { create_directory; mark_pipeline_complete; write_expected_pipeline_statuses } from "${moduleDir}/pipeline_status"
 include { write_output_manifest } from "${moduleDir}/write_output_manifest"
 
 workflow {
@@ -26,6 +26,7 @@ workflow {
 
     // Create a directory to track pipeline exit codes
     create_directory(params.pipeline_exit_status_directory)
+    write_expected_pipeline_statuses()
 
     Channel.of('done').set{ bam2fastq_modification_complete }
 
