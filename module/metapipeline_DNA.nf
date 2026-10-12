@@ -18,6 +18,7 @@ include { annotate_VCF } from "${moduleDir}/annotate_VCF/workflow"
 include { call_GeneticAncestry } from "${moduleDir}/call_GeneticAncestry/workflow"
 include { calculate_mtDNA_CopyNumber } from "${moduleDir}/calculate_mtDNA_CopyNumber/workflow"
 include { create_directory; mark_pipeline_complete } from "${moduleDir}/pipeline_status"
+include { write_output_manifest } from "${moduleDir}/write_output_manifest"
 
 workflow {
     // Create a status directory to track when pipelines complete
@@ -50,6 +51,22 @@ workflow {
 
     recalibrate_BAM(calculate_targeted_coverage.out.completion_signal)
 
+
+    /**
+    *   BAM output manifest collection
+    */
+    // Collect every child invocation, including distinct paired-run normal
+    // copies. toList also emits [] when both stages are skipped.
+    manifest_entries = align_DNA.out.manifest_entries
+        .mix(recalibrate_BAM.out.manifest_entries)
+        .toList()
+
+    write_output_manifest(manifest_entries)
+
+
+    /**
+    *   Direct pipeline calls
+    */
     generate_SQC_BAM(recalibrate_BAM.out.recalibrate_sample_data_updated)
 
     if (params.call_mtSNV.is_pipeline_enabled) {
