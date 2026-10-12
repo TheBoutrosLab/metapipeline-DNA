@@ -150,11 +150,10 @@ process call_metapipeline_DNA {
     output:
         // The child may still be running after sbatch returns. Pass the future
         // manifest location as a value, not an eagerly staged path input.
-        tuple env(CURRENT_WORK_DIR), env(SBATCH_RET), val(identifier), val(output_manifest_path), emit: submit_out
+        tuple env(CURRENT_WORK_DIR), env(SBATCH_RET), val(identifier), env(OUTPUT_MANIFEST_PATH), emit: submit_out
         path(".command.*")
 
     script:
-    output_manifest_path = "${task.workDir}/OUTPUTMANIFEST/output_manifest.json".toString()
     submission_command = (params.uclahs_cds_wgs)
         ? params.global_job_submission_sbatch + "-J wgs_${task.process}_${identifier}_\${FIRST_DIR_HASH}_\${SECOND_DIR_HASH} --wrap=\""
         : ""
@@ -162,9 +161,13 @@ process call_metapipeline_DNA {
         ? params.global_job_submission_limiter + submission_command
         : ""
     limiter_wrapper_post = (params.uclahs_cds_wgs)
-        ? "\")"
+        ? "\") || SBATCH_RET='submission failed'"
         : ""
-    limiter_wrapper_pre + """
+    // Failed direct child runs must still reach the non-failing status checker.
+    child_failure_capture = params.uclahs_cds_wgs ? '' : ' || true'
+    """
+    OUTPUT_MANIFEST_PATH="\$(pwd)/OUTPUTMANIFEST/output_manifest.json"
+    """ + limiter_wrapper_pre + """
 
     : "\${CURRENT_WORK_DIR:=`pwd`}"
     : "\${SBATCH_RET:=-1}"
@@ -177,7 +180,8 @@ process call_metapipeline_DNA {
         --status_email_address '${params.status_email_address}' \
         --patient ${patient} \
         --workflow_identifier ${shellQuote(identifier)} \
-        --output_manifest_path ${shellQuote(output_manifest_path)} \
+        --completion_report "\$(pwd)/child_completion.json" \
+        --output_manifest_path "\${OUTPUT_MANIFEST_PATH}" \
         --input_type ${params.input_type} \
         --sample_mode ${params.sample_mode} \
         --project_id ${params.project_id} \
@@ -203,15 +207,22 @@ process call_metapipeline_DNA {
         --ssnv_run_all_tumor_only ${params.ssnv_run_all_tumor_only} \
         --use_contamination_tables ${params.use_contamination_tables} \
         -params-file ${pipeline_params_json} \
-        -c ${moduleDir}/config/metapipeline_DNA_base.config
+        -c ${moduleDir}/config/metapipeline_DNA_base.config${child_failure_capture}
     """ + limiter_wrapper_post
 }
 
 process check_process_status {
+    cache false
     publishDir path: "${params.log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
         saveAs: { "${task.process}/${file(work_dir).getParent().getFileName()}-${file(work_dir).getFileName()}/log${file(it).getName()}" }
+
+    publishDir path: "${params.log_output_dir}/workflow-status",
+        mode: 'copy',
+        overwrite: true,
+        pattern: 'workflow_status.json',
+        saveAs: { "${file(work_dir).parent.fileName}-${file(work_dir).fileName}/workflow_status.json" }
 
     input:
         tuple val(work_dir), val(sbatch_ret), val(identifier), val(output_manifest_path)
@@ -221,12 +232,14 @@ process check_process_status {
     output:
     path(".command.*")
     tuple val(identifier), path('output_manifest.json'), emit: manifest, optional: true
+    tuple val(identifier), env(WORKFLOW_STATUS), path('workflow_status.json'), emit: status
 
     shell:
     quoted_work_dir = shellQuote(work_dir)
     quoted_sbatch_ret = shellQuote(sbatch_ret)
     quoted_identifier = shellQuote(identifier)
     quoted_output_manifest_path = shellQuote(output_manifest_path)
+    quoted_status_checker = shellQuote("${projectDir}/templates/check_workflow_status.py")
     template 'status_check.sh'
 }
 
@@ -258,6 +271,18 @@ workflow {
     call_metapipeline_DNA(create_config_metapipeline_DNA.out.metapipeline_dna_input)
 
     check_process_status(call_metapipeline_DNA.out.submit_out)
+
+    // Only verified success enters the channel consumed by finalization.
+    check_process_status.out.manifest.set { finalization_ready }
+    check_process_status.out.status
+        .map { identifier, status, report -> [identifier: identifier, status: status] }
+        .toList()
+        .subscribe { results ->
+            log.info "Patient/sample outcomes: ${results}"
+            if (results.any { it.status != 'success' }) {
+                log.warn 'Some patient/sample workflows were unsuccessful or could not be verified; see workflow-status reports.'
+            }
+        }
 
     workflow.onComplete = {
         WorkflowFinalizer.completeWorkflow(workflow, params);
