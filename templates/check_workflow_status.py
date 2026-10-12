@@ -76,23 +76,38 @@ def verify_slurm(submission, attempts, interval):
 
 
 def verify_pipeline_records(directory):
-    expected = read_json(directory / "expected_pipelines.json")
-    if not isinstance(expected, list) or not all(isinstance(name, str) and name for name in expected):
-        raise Unverified("Invalid expected pipeline inventory")
+    # Collect available failures even if the inventory or another record is
+    # missing/malformed. Incomplete evidence must not hide known failures.
+    issues = []
     records = {}
-    for path in directory.iterdir():
-        if path.name == "expected_pipelines.json":
-            continue
-        match = re.fullmatch(r"(.+)\.(\d+)", path.name)
-        if not match or not path.is_file():
-            raise Unverified("Unrecognized pipeline status record: " + str(path))
-        records.setdefault(match.group(1), []).append(int(match.group(2)))
+    try:
+        for path in directory.iterdir():
+            if path.name == "expected_pipelines.json":
+                continue
+            try:
+                match = re.fullmatch(r"(.+)\.(\d+)", path.name)
+                if not match or not path.is_file():
+                    issues.append("Unrecognized pipeline status record: " + str(path))
+                    continue
+                records.setdefault(match.group(1), []).append(int(match.group(2)))
+            except OSError as error:
+                issues.append("Could not read pipeline status record {}: {}".format(path, error))
+    except OSError as error:
+        issues.append("Could not read pipeline status directory {}: {}".format(directory, error))
     failed = sorted(name for name, codes in records.items() if any(code != 0 for code in codes))
     if failed:
-        raise Unverified("Downstream pipelines failed: " + ", ".join(failed), "failed")
-    missing = sorted(set(expected) - set(records))
-    if missing:
-        raise Unverified("Missing downstream status records: " + ", ".join(missing))
+        issues.insert(0, "Downstream pipelines failed: " + ", ".join(failed))
+    try:
+        expected = read_json(directory / "expected_pipelines.json")
+        if not isinstance(expected, list) or not all(isinstance(name, str) and name for name in expected):
+            raise Unverified("Invalid expected pipeline inventory")
+        missing = sorted(set(expected) - set(records))
+        if missing:
+            issues.append("Missing downstream status records: " + ", ".join(missing))
+    except Unverified as error:
+        issues.append(str(error))
+    if issues:
+        raise Unverified("; ".join(issues), "failed" if failed else "unknown")
 
 
 def verify_manifest(manifest, receipt, identifier):
@@ -138,6 +153,7 @@ def verify_manifest(manifest, receipt, identifier):
 
 def check(work_dir, submission, identifier, manifest_path, output_dir, attempts=10, interval=3):
     report = {"schema_version": 1, "workflow_identifier": identifier, "status": "unknown"}
+    pipeline_records_checked = False
     try:
         # This is our task-local handoff, not the published/source manifest.
         destination = output_dir / "output_manifest.json"
@@ -154,6 +170,7 @@ def check(work_dir, submission, identifier, manifest_path, output_dir, attempts=
         report["run_id"] = expected_run
         if receipt["exit_code"] != 0:
             raise Unverified("Child Nextflow exited {}".format(receipt["exit_code"]), "failed")
+        pipeline_records_checked = True
         verify_pipeline_records(work_dir / "PIPELINEEXITSTATUS")
         manifest = read_json(manifest_path)
         verify_manifest(manifest, receipt, identifier)
@@ -167,6 +184,18 @@ def check(work_dir, submission, identifier, manifest_path, output_dir, attempts=
         report.update(status=error.status, reason=str(error))
     except Exception as error:
         report.update(status="unknown", reason="Status verification error: {}".format(error))
+
+    # Slurm/child failures block the handoff, but must not skip the downstream
+    # diagnostics that were printed by the original status-check script.
+    if not pipeline_records_checked:
+        try:
+            verify_pipeline_records(work_dir / "PIPELINEEXITSTATUS")
+        except Unverified as error:
+            report["reason"] += "; " + str(error)
+            if error.status == "failed":
+                report["status"] = "failed"
+        except Exception as error:
+            report["reason"] += "; Downstream status verification error: {}".format(error)
     return report
 
 
