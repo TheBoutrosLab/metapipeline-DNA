@@ -44,6 +44,9 @@ Map build_output_manifest_entry(String bam, Map context, Map identity) {
         candidates.findAll { Files.isRegularFile(it) }
             .collect { publish_root.resolve(work_root.relativize(it)).toString() }
     }
+    def published_file_sizes = ([bam_path] + index_candidates + checksum_candidates)
+        .findAll { Files.isRegularFile(it) }
+        .collectEntries { [(publish_root.resolve(work_root.relativize(it)).toString()): Files.size(it)] }
 
     return [
         schema_version: 1,
@@ -59,7 +62,8 @@ Map build_output_manifest_entry(String bam, Map context, Map identity) {
         working_bam: bam_path.toRealPath().toString(),
         published_bam: published_bam,
         published_indexes: published_existing(index_candidates),
-        published_checksums: published_existing(checksum_candidates)
+        published_checksums: published_existing(checksum_candidates),
+        published_file_sizes: published_file_sizes
     ]
 }
 
