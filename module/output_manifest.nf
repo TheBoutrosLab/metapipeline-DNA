@@ -2,6 +2,23 @@ import groovy.json.JsonSlurper
 import java.nio.file.Files
 import java.nio.file.Paths
 
+/** Combine entries from all invocations of one patient/sample workflow. */
+Map combine_output_manifest_entries(List entries, Map metadata) {
+    def entry_ids = [] as Set
+    entries.each { entry ->
+        if (entry.schema_version != metadata.schema_version ||
+            entry.run_id != metadata.run_id ||
+            entry.workflow_identifier != metadata.workflow_identifier ||
+            entry.patient != metadata.patient) {
+            throw new IllegalArgumentException("Manifest entry belongs to a different workflow or schema: ${entry.entry_id}")
+        }
+        if (!entry.entry_id || !entry_ids.add(entry.entry_id)) {
+            throw new IllegalArgumentException("Missing or duplicate manifest entry ID: ${entry.entry_id}")
+        }
+    }
+    return metadata + [entries: entries.sort(false) { a, b -> a.entry_id <=> b.entry_id }]
+}
+
 /**
  * Describe a generated BAM without waiting for asynchronous publication. Paths
  * are mapped relative to the wrapper's explicit output root, before resolving
