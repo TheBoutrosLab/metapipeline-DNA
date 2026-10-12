@@ -1,4 +1,5 @@
 import groovy.json.JsonSlurper
+include { convert_finalization_bam } from './convert_finalization_bam'
 
 
 def quote_finalization_arg(value) {
@@ -42,6 +43,7 @@ workflow finalize_outputs {
                    'finalization_delete_recalibrated_bams'].any { params.containsKey(it) && params[it] }
     plans = Channel.empty()
     conversion_requests = Channel.empty()
+    conversion_results = Channel.empty()
     cleanup_requests = Channel.empty()
     completed_entries = Channel.empty()
     if (enabled) {
@@ -57,16 +59,19 @@ workflow finalize_outputs {
         conversion_requests = parsed.flatMap { identifier, manifest, plan ->
             plan.conversions.collect { request -> [identifier, manifest, request] }
         }
+        convert_finalization_bam(conversion_requests)
+        conversion_results = convert_finalization_bam.out.completed
         cleanup_requests = parsed.filter { identifier, manifest, plan -> !plan.cleanup.entries.isEmpty() }
             .map { identifier, manifest, plan -> [identifier, manifest, plan.cleanup] }
         completed_entries = parsed.flatMap { identifier, manifest, plan ->
             plan.completed.collect { entry_id -> [identifier, entry_id] }
-        }
+        }.mix(conversion_results.map { identifier, entry_id, bam_stats, cram_stats -> [identifier, entry_id] })
     }
 
     emit:
     plans = plans
     conversion_requests = conversion_requests
+    conversion_results = conversion_results
     // Consumers must satisfy wait_for_entry_ids before running any cleanup.
     cleanup_requests = cleanup_requests
     completed_entries = completed_entries
