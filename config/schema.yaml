@@ -64,6 +64,40 @@ clusterOptions:
   required: true
   allow_empty: true
   help: 'Additional cluster options for use with submission command'
+finalization_cram_recalibrated_bams:
+  type: 'Bool'
+  required: true
+  default: true
+  help: 'Plan CRAM conversion of generated recalibrated BAMs after verified workflow success'
+finalization_delete_alignment_bams:
+  type: 'Bool'
+  required: true
+  default: true
+  help: 'Plan deletion of generated alignment BAMs after required conversions complete'
+finalization_delete_recalibrated_bams:
+  type: 'Bool'
+  required: true
+  default: true
+  help: 'Plan deletion of recalibrated BAMs only with validated replacement CRAMs'
+finalization_executor:
+  type: 'String'
+  required: true
+  default: 'slurm'
+  help: 'Independent executor for finalization tasks; use local for testing'
+finalization_queue:
+  type: 'String'
+  required: true
+  allow_empty: false
+  help: 'Finalization partition; empty uses the scheduler default'
+finalization_cluster_options:
+  type: 'String'
+  required: true
+  allow_empty: true
+  help: 'Additional finalization scheduler options, separate from child-job options'
+finalization_max_conversions:
+  type: 'Integer'
+  required: true
+  help: 'Maximum concurrent conversion tasks per metapipeline run; must be positive'
 status_email_address:
   type: 'EmailAddress'
   required: false
