@@ -148,10 +148,13 @@ process call_metapipeline_DNA {
         )
 
     output:
-        tuple env(CURRENT_WORK_DIR), env(SBATCH_RET), val(identifier), emit: submit_out
+        // The child may still be running after sbatch returns. Pass the future
+        // manifest location as a value, not an eagerly staged path input.
+        tuple env(CURRENT_WORK_DIR), env(SBATCH_RET), val(identifier), val(output_manifest_path), emit: submit_out
         path(".command.*")
 
     script:
+    output_manifest_path = "${task.workDir}/OUTPUTMANIFEST/output_manifest.json".toString()
     submission_command = (params.uclahs_cds_wgs)
         ? params.global_job_submission_sbatch + "-J wgs_${task.process}_${identifier}_\${FIRST_DIR_HASH}_\${SECOND_DIR_HASH} --wrap=\""
         : ""
@@ -173,6 +176,8 @@ process call_metapipeline_DNA {
         ${moduleDir}/module/metapipeline_DNA.nf \
         --status_email_address '${params.status_email_address}' \
         --patient ${patient} \
+        --workflow_identifier ${shellQuote(identifier)} \
+        --output_manifest_path ${shellQuote(output_manifest_path)} \
         --input_type ${params.input_type} \
         --sample_mode ${params.sample_mode} \
         --project_id ${params.project_id} \
@@ -209,17 +214,19 @@ process check_process_status {
         saveAs: { "${task.process}/${file(work_dir).getParent().getFileName()}-${file(work_dir).getFileName()}/log${file(it).getName()}" }
 
     input:
-        tuple val(work_dir), val(sbatch_ret), val(identifier)
+        tuple val(work_dir), val(sbatch_ret), val(identifier), val(output_manifest_path)
 
     debug true
 
     output:
     path(".command.*")
+    tuple val(identifier), path('output_manifest.json'), emit: manifest, optional: true
 
     shell:
     quoted_work_dir = shellQuote(work_dir)
     quoted_sbatch_ret = shellQuote(sbatch_ret)
     quoted_identifier = shellQuote(identifier)
+    quoted_output_manifest_path = shellQuote(output_manifest_path)
     template 'status_check.sh'
 }
 
