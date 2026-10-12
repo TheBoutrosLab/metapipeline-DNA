@@ -7,6 +7,8 @@ nextflow.enable.dsl = 2
 
 import groovy.json.JsonOutput
 
+include { finalize_outputs } from './module/finalize_outputs'
+
 // Quote a value as a literal shell word, including any embedded single quotes.
 def shellQuote(value) {
     return "'" + value.toString().replace("'", "'\"'\"'") + "'"
@@ -272,6 +274,7 @@ workflow {
 
     // Only verified success enters the channel consumed by finalization.
     check_process_status.out.manifest.set { finalization_ready }
+    finalize_outputs(finalization_ready)
     check_process_status.out.status
         .map { identifier, status, report -> [identifier: identifier, status: status] }
         .toList()
