@@ -161,10 +161,8 @@ process call_metapipeline_DNA {
         ? params.global_job_submission_limiter + submission_command
         : ""
     limiter_wrapper_post = (params.uclahs_cds_wgs)
-        ? "\") || SBATCH_RET='submission failed'"
+        ? "\")"
         : ""
-    // Failed direct child runs must still reach the non-failing status checker.
-    child_failure_capture = params.uclahs_cds_wgs ? '' : ' || true'
     """
     OUTPUT_MANIFEST_PATH="\$(pwd)/OUTPUTMANIFEST/output_manifest.json"
     """ + limiter_wrapper_pre + """
@@ -207,7 +205,7 @@ process call_metapipeline_DNA {
         --ssnv_run_all_tumor_only ${params.ssnv_run_all_tumor_only} \
         --use_contamination_tables ${params.use_contamination_tables} \
         -params-file ${pipeline_params_json} \
-        -c ${moduleDir}/config/metapipeline_DNA_base.config${child_failure_capture}
+        -c ${moduleDir}/config/metapipeline_DNA_base.config
     """ + limiter_wrapper_post
 }
 
