@@ -68,7 +68,7 @@ finalization_cram_recalibrated_bams:
   type: 'Bool'
   required: true
   default: true
-  help: 'Plan CRAM conversion of generated recalibrated BAMs after verified workflow success'
+  help: 'Convert generated recalibrated BAMs to CRAM after verified workflow success'
 finalization_delete_alignment_bams:
   type: 'Bool'
   required: true
@@ -78,7 +78,7 @@ finalization_delete_recalibrated_bams:
   type: 'Bool'
   required: true
   default: true
-  help: 'Plan deletion of recalibrated BAMs only with validated replacement CRAMs'
+  help: 'Delete recalibrated BAMs and their sidecars in the conversion task after matching BAM/CRAM flagstats'
 finalization_executor:
   type: 'String'
   required: true
