@@ -8,6 +8,8 @@ import shutil
 import subprocess
 import time
 
+from finalization_records import RecordError, verify_publication
+
 
 class Unverified(Exception):
     def __init__(self, reason, status="unknown"):
@@ -147,8 +149,10 @@ def verify_manifest(manifest, receipt, identifier):
                 path.resolve().relative_to(root.resolve())
             except ValueError:
                 raise Unverified("Published file is outside the output root: " + name)
-            if not path.is_file() or path.stat().st_size != expected_size:
-                raise Unverified("Published file is missing or incomplete: " + name)
+        try:
+            verify_publication(manifest, entry)
+        except RecordError as error:
+            raise Unverified(str(error))
 
 
 def check(work_dir, submission, identifier, manifest_path, output_dir, attempts=10, interval=3):
