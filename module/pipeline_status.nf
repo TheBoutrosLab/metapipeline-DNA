@@ -1,3 +1,19 @@
+import groovy.json.JsonOutput
+
+/** Declare the exit records required to establish downstream success. */
+def write_expected_pipeline_statuses() {
+    def expected = ['generate-SQC-BAM', 'call-gSNP', 'call-gSV', 'call-sSV', 'call-sSNV', 'call-sCNA']
+    ['call_mtSNV', 'call_SRC', 'StableLift', 'annotate_VCF', 'call_GeneticAncestry', 'calculate_mtDNA_CopyNumber'].each { key ->
+        if (params[key].is_pipeline_enabled) {
+            expected.add(key.replace('_', '-'))
+        }
+    }
+    if (params.calculate_targeted_coverage.is_pipeline_enabled && params.use_original_intervals) {
+        expected.add('calculate-targeted-coverage')
+    }
+    new File("${params.pipeline_exit_status_directory}/expected_pipelines.json").text = JsonOutput.toJson(expected.sort()) + '\n'
+}
+
 /*
 *   Create the given directory and any necessary parent directories
 */
