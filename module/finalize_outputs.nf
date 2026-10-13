@@ -71,19 +71,8 @@ workflow finalize_outputs {
         cleanup_requests = parsed.filter { identifier, manifest, plan -> !plan.cleanup.entries.isEmpty() }
             .map { identifier, manifest, plan -> [identifier, manifest, plan.cleanup] }
 
-        // Emit a group as soon as all conversions for that workflow succeed.
-        // Ignored failures emit no result, so their groups never become ready.
-        conversion_counts = parsed.map { identifier, manifest, plan -> [identifier, plan.conversions.size()] }
-        successful_conversions = conversion_results.combine(conversion_counts, by: 0)
-            .map { identifier, entry_id, bam_stats, cram_stats, count -> [groupKey(identifier, count), entry_id] }
-            .groupTuple()
-            .map { key, entry_ids -> [key.getGroupTarget(), entry_ids] }
-        ready_cleanup = cleanup_requests.filter { identifier, manifest, cleanup -> !cleanup.wait_for_entry_ids.isEmpty() }
-            .join(successful_conversions)
-            .filter { identifier, manifest, cleanup, entry_ids -> entry_ids.containsAll(cleanup.wait_for_entry_ids) }
-            .map { identifier, manifest, cleanup, entry_ids -> [identifier, manifest, cleanup] }
-            .mix(cleanup_requests.filter { identifier, manifest, cleanup -> cleanup.wait_for_entry_ids.isEmpty() })
-        delete_finalization_alignment_bams(ready_cleanup)
+        // Both arms start from the verified manifest's plan independently.
+        delete_finalization_alignment_bams(cleanup_requests)
         cleanup_results = delete_finalization_alignment_bams.out.completed
         completed_entries = parsed.flatMap { identifier, manifest, plan ->
             plan.completed.collect { entry_id -> [identifier, entry_id] }
@@ -95,7 +84,6 @@ workflow finalize_outputs {
     plans = plans
     conversion_requests = conversion_requests
     conversion_results = conversion_results
-    // Consumers must satisfy wait_for_entry_ids before running any cleanup.
     cleanup_requests = cleanup_requests
     cleanup_results = cleanup_results
     completed_entries = completed_entries
