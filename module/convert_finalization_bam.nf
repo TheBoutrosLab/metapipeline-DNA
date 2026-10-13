@@ -15,8 +15,8 @@ process convert_finalization_bam {
 
     container 'ghcr.io/theboutroslab/samtools:1.24'
 
-    cpus 4
-    memory '8 GB'
+    cpus 12
+    memory '16 GB'
 
     maxForks params.finalization_max_conversions
 
@@ -70,6 +70,8 @@ process convert_finalization_bam {
     def bam = entry.published_bam
     def cram = bam.replaceFirst(/\.bam$/, '.cram')
     def reference = entry.reference_fasta + '##idx##' + entry.reference_fasta_fai
+    // Leave CPU capacity for both flagstats consumers, hashing and stream copies.
+    def conversion_threads = Math.max(0, task.cpus - 7)
     """
     set -euo pipefail
 
@@ -78,18 +80,37 @@ process convert_finalization_bam {
         exit 0
     fi
 
-    samtools view -@ ${task.cpus - 1} -T ${conversion_quote(reference)} \\
-        -O CRAM,store_md=1,store_nm=1 --write-index \\
-        -o ${conversion_quote(cram + '.tmp##idx##' + cram + '.crai.tmp')} ${conversion_quote(bam)}
+    pipe_dir=\$(mktemp -d)
+    trap 'kill "\${bam_stats_pid:-}" "\${hash_pid:-}" 2>/dev/null || true; rm -rf -- "\$pipe_dir"' EXIT
+    mkfifo "\$pipe_dir/bam_stats" "\$pipe_dir/cram_hash"
 
-    samtools flagstat -@ ${task.cpus - 1} ${conversion_quote(bam)} > bam.flagstat
+    samtools flagstat -@ 1 - < "\$pipe_dir/bam_stats" > bam.flagstat &
+    bam_stats_pid=\$!
+    sha512sum < "\$pipe_dir/cram_hash" > cram.sha512 &
+    hash_pid=\$!
 
-    samtools flagstat -@ ${task.cpus - 1} --input-fmt-option ${conversion_quote('reference=' + reference)} \\
-        ${conversion_quote(cram + '.tmp')} > cram.flagstat
+    tee "\$pipe_dir/bam_stats" < ${conversion_quote(bam)} |
+        samtools view -@ ${conversion_threads} -T ${conversion_quote(reference)} \\
+            -O CRAM,store_md=1,store_nm=1 --write-index \\
+            -o ${conversion_quote('-##idx##' + cram + '.crai.tmp')} - |
+        tee ${conversion_quote(cram + '.tmp')} "\$pipe_dir/cram_hash" |
+        samtools flagstat -@ 1 --input-fmt-option ${conversion_quote('reference=' + reference)} - > cram.flagstat
 
+    # Background consumers are not covered by pipefail; check each explicitly.
+    wait "\$bam_stats_pid"
+    wait "\$hash_pid"
     diff -u bam.flagstat cram.flagstat
+
+    sha512sum < ${conversion_quote(cram + '.crai.tmp')} > crai.sha512
+    read -r cram_digest _ < cram.sha512
+    read -r crai_digest _ < crai.sha512
+    printf '%s  %s\\n' "\$cram_digest" ${conversion_quote(file(cram).name)} > ${conversion_quote(cram + '.sha512.tmp')}
+    printf '%s  %s\\n' "\$crai_digest" ${conversion_quote(file(cram).name + '.crai')} > ${conversion_quote(cram + '.crai.sha512.tmp')}
+
     mv -- ${conversion_quote(cram + '.tmp')} ${conversion_quote(cram)}
     mv -- ${conversion_quote(cram + '.crai.tmp')} ${conversion_quote(cram + '.crai')}
+    mv -- ${conversion_quote(cram + '.sha512.tmp')} ${conversion_quote(cram + '.sha512')}
+    mv -- ${conversion_quote(cram + '.crai.sha512.tmp')} ${conversion_quote(cram + '.crai.sha512')}
     samtools --version > samtools.version
     touch conversion.ready
     """
