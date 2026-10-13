@@ -26,7 +26,7 @@ def plan_finalization(manifest, identifier, cram=False, delete_alignment=False, 
         recorded_state = None if record is None else record["state"]
         if record is None:
             # Validate a possible new record without creating it. The execution
-            # worker must recheck metadata and save intent under its entry lock.
+            # worker must recheck metadata and save intent before cleanup.
             record = new_record(manifest, entry, action, delete_source=delete_source)
         if record["action"] != action or bool(record["deletions"]) != delete_source:
             raise RecordError("Requested action/deletion policy differs from saved intent: " + entry["entry_id"])

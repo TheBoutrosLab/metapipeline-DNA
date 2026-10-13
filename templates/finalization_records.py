@@ -1,8 +1,9 @@
 """Small, persistent finalization records. This module never reads BAM/CRAM contents.
 
-Workers must serialize operations for an entry, persist cleanup intent BEFORE
-unlinking anything, and record completion afterwards. These helpers record
-validation performed by the worker; they do not perform conversion or validation.
+Finalization runs for the same entry are assumed not to overlap. Workers persist
+cleanup intent BEFORE unlinking anything and record completion afterwards.
+These helpers record validation performed by the worker; they do not perform
+conversion or validation.
 """
 from copy import deepcopy
 import hashlib
@@ -234,7 +235,7 @@ def record_deletion(manifest, entry, record, name):
 
 
 def save_record(manifest, entry, record):
-    """Atomically persist a small record; caller must serialize entry operations."""
+    """Atomically persist a small record; runs for this entry must not overlap."""
     recovery_action(manifest, entry, record)
     previous = load_record(manifest, entry)
     if previous is None and record["state"] != "pending":
@@ -300,8 +301,9 @@ def verify_publication(manifest, entry):
 def worker_record_step(manifest, entry, step, delete_source=False):
     """Metadata hooks for the same conversion task; never convert or unlink files.
 
-    The host-side hooks run under the task's entry lock. Conversion/flagstats
-    run in the samtools container; shell cleanup follows persisted intent.
+    The host-side hooks assume runs for this entry do not overlap.
+    Conversion/flagstats run in the samtools container; shell cleanup follows
+    persisted intent.
     """
     record = load_record(manifest, entry)
     if record is None:
