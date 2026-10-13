@@ -73,7 +73,7 @@ finalization_delete_alignment_bams:
   type: 'Bool'
   required: true
   default: true
-  help: 'Plan deletion of generated alignment BAMs after required conversions complete'
+  help: 'Delete generated alignment BAMs and their sidecars after required conversions complete'
 finalization_delete_recalibrated_bams:
   type: 'Bool'
   required: true
