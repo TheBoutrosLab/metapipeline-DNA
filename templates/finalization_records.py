@@ -1,7 +1,7 @@
 """Small, persistent finalization records. This module never reads BAM/CRAM contents.
 
 Workers must serialize operations for an entry, persist cleanup intent BEFORE
-unlinking anything, and save each deletion afterwards. These helpers record
+unlinking anything, and record completion afterwards. These helpers record
 validation performed by the worker; they do not perform conversion or validation.
 """
 from copy import deepcopy
@@ -123,14 +123,16 @@ def _verify_conversion(manifest, entry, conversion):
     if tool.get("name") != "samtools" or not isinstance(tool.get("version"), str) or not tool["version"].strip():
         raise RecordError("Missing conversion tool/version")
     settings = conversion.get("settings", {})
-    if not isinstance(settings, dict) or settings.get("lossless") is not True:
-        raise RecordError("Missing lossless conversion settings")
+    if not isinstance(settings, dict) or settings != {"store_md": True, "store_nm": True}:
+        raise RecordError("Missing CRAM conversion settings")
     validation = conversion.get("validation", {})
-    if (validation.get("full_decode") is not True or validation.get("index_usable") is not True
-            or type(validation.get("input_records")) is not int or validation["input_records"] < 0
-            or type(validation.get("output_records")) is not int
-            or validation["input_records"] != validation["output_records"]):
-        raise RecordError("Missing or unsuccessful CRAM validation")
+    # Flagstats compare counts/flags, not all record contents. Retain the small
+    # reports so a resumed task can emit them without scanning the CRAM again.
+    if (not isinstance(validation, dict) or validation.get("method") != "flagstat"
+            or not isinstance(validation.get("bam_flagstat"), str)
+            or not validation["bam_flagstat"].strip()
+            or validation["bam_flagstat"] != validation.get("cram_flagstat")):
+        raise RecordError("Missing or unsuccessful flagstats comparison")
 
 
 def recovery_action(manifest, entry, record):
@@ -293,3 +295,64 @@ def verify_publication(manifest, entry):
         if not path.is_file() or path.stat().st_size != size:
             raise RecordError("Published file is missing or incomplete: " + name)
     return "unprocessed"
+
+
+def worker_record_step(manifest, entry, step, delete_source=False):
+    """Metadata hooks for the same conversion task; never convert or unlink files.
+
+    The host-side hooks run under the task's entry lock. Conversion/flagstats
+    run in the samtools container; shell cleanup follows persisted intent.
+    """
+    record = load_record(manifest, entry)
+    if record is None:
+        if step != "prepare":
+            raise RecordError("Conversion has no saved intent")
+        record = new_record(manifest, entry, "cram", delete_source)
+        save_record(manifest, entry, record)
+    if record["action"] != "cram" or bool(record["deletions"]) != delete_source:
+        raise RecordError("Conversion policy differs from saved intent")
+    action = recovery_action(manifest, entry, record)
+    if step == "prepare":
+        if action != "convert":
+            validation = record["conversion"]["validation"]
+            Path("bam.flagstat").write_text(validation["bam_flagstat"])
+            Path("cram.flagstat").write_text(validation["cram_flagstat"])
+        Path("finalization.action").write_text(action + "\n")
+    elif step == "authorize":
+        if action == "convert":
+            record = record_conversion(
+                manifest, entry, record, Path("samtools.version").read_text().splitlines()[0],
+                {"store_md": True, "store_nm": True},
+                {"method": "flagstat", "bam_flagstat": Path("bam.flagstat").read_text(),
+                 "cram_flagstat": Path("cram.flagstat").read_text()})
+            save_record(manifest, entry, record)
+        if record["state"] == "validated":
+            record = begin_cleanup(manifest, entry, record)
+            save_record(manifest, entry, record)
+    elif step == "complete":
+        for name, state in record["deletions"].items():
+            if state != "deleted":
+                record = record_deletion(manifest, entry, record, name)
+                save_record(manifest, entry, record)
+        if record["state"] != "complete":
+            raise RecordError("Conversion cleanup is incomplete")
+    else:
+        raise RecordError("Unknown record step: " + step)
+
+
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Update conversion metadata; do not convert or delete files")
+    parser.add_argument("step", choices=("prepare", "authorize", "complete"))
+    parser.add_argument("--manifest", type=Path, required=True)
+    parser.add_argument("--entry-id", required=True)
+    parser.add_argument("--delete-source", action="store_true")
+    args = parser.parse_args()
+    manifest = json.loads(args.manifest.read_text())
+    entry, = [entry for entry in manifest["entries"] if entry["entry_id"] == args.entry_id]
+    worker_record_step(manifest, entry, args.step, args.delete_source)
+
+
+if __name__ == "__main__":
+    main()
