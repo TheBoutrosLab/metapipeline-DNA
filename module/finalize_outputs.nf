@@ -7,7 +7,9 @@ def quote_finalization_arg(value) {
 }
 
 process plan_output_finalization {
-    label 'finalization_plan'
+    // Published files and finalization records can change without the manifest.
+    cache false
+
     tag { identifier }
 
     publishDir path: "${params.final_output_dir}/intermediate/output-finalization-plans",
@@ -57,7 +59,10 @@ workflow finalize_outputs {
         // Only the JSON manifest is a path input. BAM/CRAM/reference locations
         // remain strings inside request maps; workers access shared paths.
         conversion_requests = parsed.flatMap { identifier, manifest, plan ->
-            plan.conversions.collect { request -> [identifier, manifest, request] }
+            plan.conversions.collect { request ->
+                // beforeScript needs the original path before input staging.
+                [identifier, manifest, request + [manifest_path: manifest.toAbsolutePath().toString()]]
+            }
         }
         convert_finalization_bam(conversion_requests)
         conversion_results = convert_finalization_bam.out.completed
