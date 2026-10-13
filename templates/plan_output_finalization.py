@@ -63,9 +63,7 @@ def plan_finalization(manifest, identifier, cram=False, delete_alignment=False, 
                     "delete_recalibrated_bams": delete_recalibrated},
         "conversions": conversions,
         "cleanup": {
-            # All cleanup for this invocation must wait for every required
-            # conversion. These are requests, not permission to unlink files.
-            "wait_for_entry_ids": [item["entry_id"] for item in conversions],
+            # Alignment cleanup is independent of recalibrated BAM conversion.
             "entries": cleanup,
         },
         "completed": completed,
