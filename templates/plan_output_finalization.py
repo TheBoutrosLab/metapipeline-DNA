@@ -46,9 +46,13 @@ def plan_finalization(manifest, identifier, cram=False, delete_alignment=False, 
                 reference = Path(entry.get(key, ""))
                 if not reference.is_absolute() or not reference.is_file():
                     raise RecordError("Missing accessible conversion reference {}: {}".format(key, reference))
+        if action == "cram":
+            # The same worker resumes validated/partially cleaned entries,
+            # skipping conversion and finishing only the outstanding metadata
+            # and deletions. Separate cleanup must not delete these BAMs again.
             conversions.append(request)
-        # Includes completion bookkeeping for CRAMs whose BAMs are retained.
-        cleanup.append(dict(request, deletion_paths=list(record["deletions"])))
+        else:
+            cleanup.append(dict(request, deletion_paths=list(record["deletions"])))
     return {
         "schema_version": 1,
         "mode": "plan_only",
