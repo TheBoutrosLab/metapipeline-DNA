@@ -9,15 +9,21 @@ from finalization_records import RecordError, load_record, new_record, record_pa
 
 
 def plan_finalization(manifest, identifier, cram=False, delete_alignment=False, delete_recalibrated=False):
-    # Recheck publication/record metadata on the worker node. A prior status
-    # check does not authorize changes to files that have since changed.
-    verify_manifest(manifest, manifest, identifier)
+    selected_stages = set()
+    if delete_alignment:
+        selected_stages.add("align-DNA")
+    if cram or delete_recalibrated:
+        selected_stages.add("recalibrate-BAM")
+    # Status checking verified the full manifest before either arm started.
+    # Recheck only this arm's files/records: the other arm may already be
+    # deleting its outputs or may have failed its own metadata checks.
+    selected_manifest = dict(manifest, entries=[entry for entry in manifest["entries"]
+                                               if entry.get("stage") in selected_stages])
+    verify_manifest(selected_manifest, manifest, identifier)
     conversions, cleanup, completed, skipped = [], [], [], []
     for entry in sorted(manifest["entries"], key=lambda entry: entry["entry_id"]):
         stage = entry.get("stage")
-        selected = ((stage == "align-DNA" and delete_alignment)
-                    or (stage == "recalibrate-BAM" and (cram or delete_recalibrated)))
-        if not selected:
+        if stage not in selected_stages:
             skipped.append(entry["entry_id"])
             continue
         action = "delete_alignment" if stage == "align-DNA" else "cram"
