@@ -98,6 +98,10 @@ finalization_max_conversions:
   type: 'PositiveInteger'
   required: true
   help: 'Maximum concurrent conversion tasks per metapipeline run; must be positive'
+finalization_max_alignment_deletions:
+  type: 'PositiveInteger'
+  required: true
+  help: 'Maximum concurrent alignment deletion tasks per metapipeline run; must be positive'
 status_email_address:
   type: 'EmailAddress'
   required: false
