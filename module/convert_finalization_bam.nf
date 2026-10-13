@@ -9,9 +9,7 @@ def conversion_record_command(helper, manifest, request, step) {
 
 process convert_finalization_bam {
     tag { "${identifier}: ${request.entry_id}" }
-    executor params.finalization_executor
-    queue params.finalization_queue
-    clusterOptions params.finalization_cluster_options
+    label 'finalization_executor'
     container 'ghcr.io/theboutroslab/samtools:1.23'
     cpus 4
     memory '8 GB'

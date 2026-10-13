@@ -4,9 +4,7 @@ def cleanup_quote(value) {
 
 process delete_finalization_alignment_bams {
     tag { identifier }
-    executor params.finalization_executor
-    queue params.finalization_queue
-    clusterOptions params.finalization_cluster_options
+    label 'finalization_executor'
     cpus 1
     memory '1 GB'
     time '1h'
