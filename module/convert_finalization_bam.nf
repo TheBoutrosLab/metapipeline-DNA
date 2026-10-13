@@ -13,7 +13,7 @@ process convert_finalization_bam {
 
     label 'finalization_executor'
 
-    container 'ghcr.io/theboutroslab/samtools:1.23'
+    container 'ghcr.io/theboutroslab/samtools:1.24'
 
     cpus 4
     memory '8 GB'
