@@ -80,7 +80,7 @@ process convert_finalization_bam {
         exit 0
     fi
 
-    pipe_dir=\$(mktemp -d)
+    pipe_dir=\$(mktemp -d ./finalization-pipes.XXXXXXXXXX)
     trap 'kill "\${bam_stats_pid:-}" "\${hash_pid:-}" 2>/dev/null || true; rm -rf -- "\$pipe_dir"' EXIT
     mkfifo "\$pipe_dir/bam_stats" "\$pipe_dir/cram_hash"
 
