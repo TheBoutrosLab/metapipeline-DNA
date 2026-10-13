@@ -10,26 +10,30 @@ def quote_finalization_arg(value) {
 process plan_output_finalization {
     // Published files and finalization records can change without the manifest.
     cache false
+    errorStrategy 'ignore'
 
-    tag { identifier }
+    tag { "${identifier}: ${arm}" }
 
     publishDir path: "${params.final_output_dir}/intermediate/output-finalization-plans",
         mode: 'copy',
         pattern: 'finalization_plan.json',
         overwrite: true,
-        saveAs: { "${identifier}/${task.hash.replace('/', '-')}/finalization_plan.json" }
+        saveAs: { "${identifier}/${arm}/${task.hash.replace('/', '-')}/finalization_plan.json" }
 
     input:
-    tuple val(identifier), path(output_manifest)
+    tuple val(identifier), path(output_manifest), val(arm)
 
     output:
     tuple val(identifier), path(output_manifest), path('finalization_plan.json'), emit: plan
 
     script:
     def options = []
-    if (params.finalization_cram_recalibrated_bams) options.add('--cram-recalibrated-bams')
-    if (params.finalization_delete_alignment_bams) options.add('--delete-alignment-bams')
-    if (params.finalization_delete_recalibrated_bams) options.add('--delete-recalibrated-bams')
+    if (arm == 'align-DNA') {
+        options.add('--delete-alignment-bams')
+    } else {
+        if (params.finalization_cram_recalibrated_bams) options.add('--cram-recalibrated-bams')
+        if (params.finalization_delete_recalibrated_bams) options.add('--delete-recalibrated-bams')
+    }
     """
     python3 ${quote_finalization_arg("${moduleDir}/../templates/plan_output_finalization.py")} \\
         --manifest ${quote_finalization_arg(output_manifest)} \\
@@ -51,7 +55,17 @@ workflow finalize_outputs {
     cleanup_results = Channel.empty()
     completed_entries = Channel.empty()
     if (enabled) {
-        plan_output_finalization(verified_manifests)
+        planning_requests = verified_manifests.flatMap { identifier, manifest ->
+            def requests = []
+            if (params.finalization_cram_recalibrated_bams || params.finalization_delete_recalibrated_bams) {
+                requests.add([identifier, manifest, 'recalibrate-BAM'])
+            }
+            if (params.finalization_delete_alignment_bams) {
+                requests.add([identifier, manifest, 'align-DNA'])
+            }
+            requests
+        }
+        plan_output_finalization(planning_requests)
         plans = plan_output_finalization.out.plan
         parsed = plans.map { identifier, manifest, plan_file ->
             def plan = new JsonSlurper().parse(plan_file)
@@ -71,7 +85,7 @@ workflow finalize_outputs {
         cleanup_requests = parsed.filter { identifier, manifest, plan -> !plan.cleanup.entries.isEmpty() }
             .map { identifier, manifest, plan -> [identifier, manifest, plan.cleanup] }
 
-        // Both arms start from the verified manifest's plan independently.
+        // Each arm has its own plan; an ignored planning failure affects only that arm.
         delete_finalization_alignment_bams(cleanup_requests)
         cleanup_results = delete_finalization_alignment_bams.out.completed
         completed_entries = parsed.flatMap { identifier, manifest, plan ->
