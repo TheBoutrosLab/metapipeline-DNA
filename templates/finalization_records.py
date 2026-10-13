@@ -5,6 +5,7 @@ cleanup intent BEFORE unlinking anything and record completion afterwards.
 These helpers record validation performed by the worker; they do not perform
 conversion or validation.
 """
+import argparse
 from copy import deepcopy
 import hashlib
 import json
@@ -14,7 +15,7 @@ import tempfile
 
 
 class RecordError(ValueError):
-    pass
+    """A finalization record or its referenced files failed validation."""
 
 
 STATES = ("pending", "validated", "cleanup_pending", "complete")
@@ -30,8 +31,8 @@ def record_path(manifest, entry):
     directory = base / manifest["workflow_identifier"] / manifest["run_id"] / "finalization"
     try:
         directory.resolve().relative_to(base.resolve())
-    except ValueError:
-        raise RecordError("Finalization record directory escapes the manifest directory")
+    except ValueError as error:
+        raise RecordError("Finalization record directory escapes the manifest directory") from error
     # Hash only the path string, never the large file itself.
     key = hashlib.sha256(entry["entry_id"].encode("utf-8")).hexdigest()
     return directory / (key + ".json")
@@ -43,8 +44,8 @@ def _published_path(manifest, name):
         raise RecordError("Finalization requires an absolute file path: " + name)
     try:
         path.resolve().relative_to(Path(manifest["publish_root"]).resolve())
-    except ValueError:
-        raise RecordError("Finalization file is outside the publication root: " + name)
+    except ValueError as error:
+        raise RecordError("Finalization file is outside the publication root: " + name) from error
     if path.is_symlink():
         raise RecordError("Finalization does not operate on file symlinks: " + name)
     return path
@@ -59,6 +60,8 @@ def _metadata(path):
 
 def _verify_metadata(path, expected):
     if (not isinstance(expected, dict) or set(expected) != {"size", "mtime_ns"}
+            # JSON booleans must not be accepted as integer metadata.
+            # pylint: disable-next=unidiomatic-typecheck
             or any(type(value) is not int for value in expected.values()) or expected["size"] < 0):
         raise RecordError("Invalid recorded file metadata: " + str(path))
     if _metadata(path) != expected:
@@ -66,18 +69,19 @@ def _verify_metadata(path, expected):
 
 
 def load_record(manifest, entry):
+    """Read a saved record, returning None only when no record exists."""
     path = record_path(manifest, entry)
     try:
-        record = json.loads(path.read_text())
+        record = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(record, dict):
             raise RecordError("Finalization record must be a JSON object: " + str(path))
         return record
-    except FileNotFoundError:
+    except FileNotFoundError as error:
         if path.is_symlink():
-            raise RecordError("Broken finalization record symlink: " + str(path))
+            raise RecordError("Broken finalization record symlink: " + str(path)) from error
         return None
     except (OSError, ValueError) as error:
-        raise RecordError("Cannot read finalization record {}: {}".format(path, error))
+        raise RecordError(f"Cannot read finalization record {path}: {error}") from error
 
 
 def new_record(manifest, entry, action, delete_source=False):
@@ -113,7 +117,7 @@ def _verify_conversion(manifest, entry, conversion):
     for kind, expected_path in expected_paths.items():
         output = conversion.get(kind, {})
         if output.get("path") != expected_path:
-            raise RecordError("Unexpected replacement {} path".format(kind))
+            raise RecordError(f"Unexpected replacement {kind} path")
         _verify_metadata(_published_path(manifest, expected_path), output.get("metadata"))
     for key in ("reference_fasta", "reference_fasta_fai"):
         reference = conversion.get(key, {})
@@ -121,7 +125,8 @@ def _verify_conversion(manifest, entry, conversion):
             raise RecordError("Conversion reference differs from source manifest: " + key)
         _verify_metadata(Path(reference["path"]), reference.get("metadata"))
     tool = conversion.get("tool", {})
-    if tool.get("name") != "samtools" or not isinstance(tool.get("version"), str) or not tool["version"].strip():
+    if (tool.get("name") != "samtools" or not isinstance(tool.get("version"), str)
+            or not tool["version"].strip()):
         raise RecordError("Missing conversion tool/version")
     settings = conversion.get("settings", {})
     if not isinstance(settings, dict) or settings != {"store_md": True, "store_nm": True}:
@@ -136,6 +141,8 @@ def _verify_conversion(manifest, entry, conversion):
         raise RecordError("Missing or unsuccessful flagstats comparison")
 
 
+# Keep validation and state selection together to preserve recovery ordering.
+# pylint: disable-next=too-many-branches
 def recovery_action(manifest, entry, record):
     """Validate identity and metadata; return convert, cleanup, or complete.
 
@@ -147,13 +154,20 @@ def recovery_action(manifest, entry, record):
             or record.get("source_entry") != entry):
         raise RecordError("Finalization record belongs to a different manifest entry or invocation")
     action, state = record.get("action"), record.get("state")
-    if state not in STATES or (action, entry.get("stage")) not in {
-            ("cram", "recalibrate-BAM"), ("delete_alignment", "align-DNA")} or entry.get("generated") is not True:
+    if (state not in STATES or (action, entry.get("stage")) not in {
+            ("cram", "recalibrate-BAM"), ("delete_alignment", "align-DNA")}
+            or entry.get("generated") is not True):
         raise RecordError("Invalid finalization action, stage or state")
     sizes = entry.get("published_file_sizes", {})
     source_files, deletions = record.get("source_files"), record.get("deletions")
-    expected_paths = [entry["published_bam"]] + entry["published_indexes"] + entry["published_checksums"]
-    if (not sizes or set(sizes) != set(expected_paths) or entry["entry_id"] != entry["published_bam"]
+    expected_paths = ([entry["published_bam"]]
+                      + entry["published_indexes"] + entry["published_checksums"])
+    # Short-circuit guards must precede access to potentially malformed fields.
+    # pylint: disable-next=too-many-boolean-expressions
+    if (not sizes or set(sizes) != set(expected_paths)
+            or entry["entry_id"] != entry["published_bam"]
+            # Reject booleans even though bool subclasses int.
+            # pylint: disable-next=unidiomatic-typecheck
             or any(type(size) is not int or size < 0 for size in sizes.values())
             or not isinstance(source_files, dict) or set(source_files) != set(sizes)
             or not isinstance(deletions, dict) or not set(deletions).issubset(sizes)
@@ -172,7 +186,10 @@ def recovery_action(manifest, entry, record):
         path = _published_path(manifest, name)
         metadata = source_files[name]
         if (not isinstance(metadata, dict) or set(metadata) != {"size", "mtime_ns"}
-                or any(type(value) is not int for value in metadata.values()) or metadata["size"] != size):
+                # Reject booleans even though bool subclasses int.
+                # pylint: disable-next=unidiomatic-typecheck
+                or any(type(value) is not int for value in metadata.values())
+                or metadata["size"] != size):
             raise RecordError("Recorded source size differs from manifest: " + name)
         deleted = deletions.get(name) == "deleted"
         cleanup_started = state in ("cleanup_pending", "complete")
@@ -201,7 +218,8 @@ def record_conversion(manifest, entry, record, tool_version, settings, validatio
     updated = deepcopy(record)
     cram = str(Path(entry["published_bam"]).with_suffix(".cram"))
     paths = {"cram": cram, "crai": cram + ".crai",
-             "reference_fasta": entry["reference_fasta"], "reference_fasta_fai": entry["reference_fasta_fai"]}
+             "reference_fasta": entry["reference_fasta"],
+             "reference_fasta_fai": entry["reference_fasta_fai"]}
     updated["conversion"] = {kind: {"path": name, "metadata": _metadata(Path(name))}
                              for kind, name in paths.items()}
     updated["conversion"].update(tool={"name": "samtools", "version": tool_version},
@@ -242,6 +260,8 @@ def save_record(manifest, entry, record):
         raise RecordError("Save a pending record before starting finalization")
     if previous is not None:
         # Refuse stale updates that would undo recorded progress or change intent.
+        # Preserve short-circuit validation before indexing previous record fields.
+        # pylint: disable-next=too-many-boolean-expressions
         if (previous.get("manifest_identity") != record["manifest_identity"]
                 or previous.get("source_entry") != record["source_entry"]
                 or previous.get("action") != record["action"]
@@ -251,11 +271,14 @@ def save_record(manifest, entry, record):
                 or STATES.index(previous["state"]) > STATES.index(record["state"])
                 or any(state == "deleted" and record["deletions"].get(name) != "deleted"
                        for name, state in previous.get("deletions", {}).items())
-                or (previous.get("conversion") is not None and previous["conversion"] != record["conversion"])):
+                or (previous.get("conversion") is not None
+                    and previous["conversion"] != record["conversion"])):
             raise RecordError("Finalization update changes identity or reverses recorded progress")
         allowed = {
-            "pending": {"pending", "validated"} if record["action"] == "cram" else {"pending", "cleanup_pending"},
-            "validated": {"validated", "cleanup_pending"} if record["deletions"] else {"validated", "complete"},
+            "pending": ({"pending", "validated"} if record["action"] == "cram"
+                        else {"pending", "cleanup_pending"}),
+            "validated": ({"validated", "cleanup_pending"} if record["deletions"]
+                          else {"validated", "complete"}),
             "cleanup_pending": {"cleanup_pending", "complete"},
             "complete": {"complete"},
         }
@@ -268,7 +291,8 @@ def save_record(manifest, entry, record):
     destination.parent.mkdir(parents=True, exist_ok=True)
     temporary = None
     try:
-        with tempfile.NamedTemporaryFile(mode="w", dir=str(destination.parent), prefix=".record-", delete=False) as stream:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=str(destination.parent),
+                                         prefix=".record-", delete=False) as stream:
             temporary = Path(stream.name)
             json.dump(record, stream, indent=2, sort_keys=True)
             stream.write("\n")
@@ -298,6 +322,8 @@ def verify_publication(manifest, entry):
     return "unprocessed"
 
 
+# Keep the three ordered record steps together; shell workers perform the actual I/O.
+# pylint: disable-next=too-many-branches
 def worker_record_step(manifest, entry, step, delete_source=False, record_action="cram"):
     """Metadata hooks for finalization tasks; never convert or unlink files.
 
@@ -317,18 +343,21 @@ def worker_record_step(manifest, entry, step, delete_source=False, record_action
     if step == "prepare":
         if record_action == "cram" and action != "convert":
             validation = record["conversion"]["validation"]
-            Path("bam.flagstat").write_text(validation["bam_flagstat"])
-            Path("cram.flagstat").write_text(validation["cram_flagstat"])
-        Path("finalization.action").write_text(action + "\n")
+            Path("bam.flagstat").write_text(validation["bam_flagstat"], encoding="utf-8")
+            Path("cram.flagstat").write_text(validation["cram_flagstat"], encoding="utf-8")
+        Path("finalization.action").write_text(action + "\n", encoding="utf-8")
     elif step == "authorize":
         if action == "convert":
             record = record_conversion(
-                manifest, entry, record, Path("samtools.version").read_text().splitlines()[0],
+                manifest, entry, record,
+                Path("samtools.version").read_text(encoding="utf-8").splitlines()[0],
                 {"store_md": True, "store_nm": True},
-                {"method": "flagstat", "bam_flagstat": Path("bam.flagstat").read_text(),
-                 "cram_flagstat": Path("cram.flagstat").read_text()})
+                {"method": "flagstat",
+                 "bam_flagstat": Path("bam.flagstat").read_text(encoding="utf-8"),
+                 "cram_flagstat": Path("cram.flagstat").read_text(encoding="utf-8")})
             save_record(manifest, entry, record)
-        if record["state"] == "validated" or (record_action == "delete_alignment" and record["state"] == "pending"):
+        if (record["state"] == "validated"
+                or (record_action == "delete_alignment" and record["state"] == "pending")):
             record = begin_cleanup(manifest, entry, record)
             save_record(manifest, entry, record)
     elif step == "complete":
@@ -343,16 +372,16 @@ def worker_record_step(manifest, entry, step, delete_source=False, record_action
 
 
 def main():
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Update finalization metadata; do not convert or delete files")
+    """Apply one metadata step to the requested manifest entry."""
+    parser = argparse.ArgumentParser(
+        description="Update finalization metadata; do not convert or delete files")
     parser.add_argument("step", choices=("prepare", "authorize", "complete"))
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--entry-id", required=True)
     parser.add_argument("--delete-source", action="store_true")
     parser.add_argument("--action", choices=("cram", "delete_alignment"), default="cram")
     args = parser.parse_args()
-    manifest = json.loads(args.manifest.read_text())
+    manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
     entry, = [entry for entry in manifest["entries"] if entry["entry_id"] == args.entry_id]
     worker_record_step(manifest, entry, args.step, args.delete_source, args.action)
 

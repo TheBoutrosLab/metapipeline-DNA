@@ -8,7 +8,11 @@ from check_workflow_status import verify_manifest
 from finalization_records import RecordError, load_record, new_record, record_path, recovery_action
 
 
-def plan_finalization(manifest, identifier, cram=False, delete_alignment=False, delete_recalibrated=False):
+# Keep selection, recovery and request construction together in this read-only planner.
+# pylint: disable-next=too-many-locals,too-many-branches
+def plan_finalization(manifest, identifier, cram=False, delete_alignment=False,
+                      delete_recalibrated=False):
+    """Build pending requests for the selected stages without modifying their outputs."""
     selected_stages = set()
     if delete_alignment:
         selected_stages.add("align-DNA")
@@ -35,7 +39,8 @@ def plan_finalization(manifest, identifier, cram=False, delete_alignment=False, 
             # worker must recheck metadata and save intent before cleanup.
             record = new_record(manifest, entry, action, delete_source=delete_source)
         if record["action"] != action or bool(record["deletions"]) != delete_source:
-            raise RecordError("Requested action/deletion policy differs from saved intent: " + entry["entry_id"])
+            raise RecordError(
+                "Requested action/deletion policy differs from saved intent: " + entry["entry_id"])
         next_action = recovery_action(manifest, entry, record)
         if next_action == "complete":
             completed.append(entry["entry_id"])
@@ -47,11 +52,13 @@ def plan_finalization(manifest, identifier, cram=False, delete_alignment=False, 
         }
         if next_action == "convert":
             if not cram:
-                raise RecordError("BAM deletion requires a validated CRAM or enabled conversion: " + entry["entry_id"])
+                raise RecordError(
+                    "BAM deletion requires a validated CRAM or enabled conversion: "
+                    + entry["entry_id"])
             for key in ("reference_fasta", "reference_fasta_fai"):
                 reference = Path(entry.get(key, ""))
                 if not reference.is_absolute() or not reference.is_file():
-                    raise RecordError("Missing accessible conversion reference {}: {}".format(key, reference))
+                    raise RecordError(f"Missing accessible conversion reference {key}: {reference}")
         if action == "cram":
             # The same worker resumes validated/partially cleaned entries,
             # skipping conversion and finishing only the outstanding metadata
@@ -78,6 +85,7 @@ def plan_finalization(manifest, identifier, cram=False, delete_alignment=False, 
 
 
 def main():
+    """Write a finalization plan for the manifest and command-line options."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--identifier", required=True)
@@ -85,15 +93,15 @@ def main():
     parser.add_argument("--delete-alignment-bams", action="store_true")
     parser.add_argument("--delete-recalibrated-bams", action="store_true")
     args = parser.parse_args()
-    manifest = json.loads(args.manifest.read_text())
+    manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
     plan = plan_finalization(manifest, args.identifier, args.cram_recalibrated_bams,
                              args.delete_alignment_bams, args.delete_recalibrated_bams)
     temporary = Path("finalization_plan.json.tmp")
-    temporary.write_text(json.dumps(plan, indent=2) + "\n")
+    temporary.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
     temporary.replace("finalization_plan.json")
-    print("{}: planned {} conversions, {} cleanup entries; {} already complete, {} skipped".format(
-        args.identifier, len(plan["conversions"]), len(plan["cleanup"]["entries"]),
-        len(plan["completed"]), len(plan["skipped"])))
+    print(f"{args.identifier}: planned {len(plan['conversions'])} conversions, "
+          f"{len(plan['cleanup']['entries'])} cleanup entries; "
+          f"{len(plan['completed'])} already complete, {len(plan['skipped'])} skipped")
 
 
 if __name__ == "__main__":

@@ -12,22 +12,26 @@ from finalization_records import RecordError, verify_publication
 
 
 class Unverified(Exception):
+    """Evidence could not establish success; retain the corresponding workflow status."""
+
     def __init__(self, reason, status="unknown"):
         super().__init__(reason)
         self.status = status
 
 
 def read_json(path):
+    """Read JSON evidence, reporting unreadable or malformed files as unverified."""
     try:
-        return json.loads(path.read_text())
+        return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError) as error:
-        raise Unverified("Missing or unreadable evidence {}: {}".format(path, error))
+        raise Unverified(f"Missing or unreadable evidence {path}: {error}") from error
 
 
 def command(arguments):
+    """Return command output on success, or None on failure or timeout."""
     try:
         result = subprocess.run(arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                universal_newlines=True, timeout=30)
+                                universal_newlines=True, timeout=30, check=False)
         if result.returncode == 0:
             return result.stdout
     except (OSError, subprocess.TimeoutExpired):
@@ -36,9 +40,10 @@ def command(arguments):
 
 
 def verify_slurm(submission, attempts, interval):
+    """Wait for the submitted job and require successful Slurm accounting evidence."""
     match = re.fullmatch(r"Submitted batch job (\d+)", submission.strip())
     if not match:
-        raise Unverified("Unrecognized submission result: {}".format(submission))
+        raise Unverified(f"Unrecognized submission result: {submission}")
     job_id = match.group(1)
     failures = 0
     while True:
@@ -60,7 +65,8 @@ def verify_slurm(submission, attempts, interval):
     for attempt in range(attempts):
         accounting = command(["sacct", "--allocations", "--noheader", "--parsable2",
                               "--jobs", job_id, "--format=JobIDRaw,State,ExitCode"])
-        rows = [] if accounting is None else [line.strip().split("|") for line in accounting.splitlines()]
+        rows = ([] if accounting is None else
+                [line.strip().split("|") for line in accounting.splitlines()])
         rows = [row for row in rows if len(row) == 3 and row[0].strip() == job_id]
         if len(rows) == 1:
             state, exit_code = rows[0][1].strip(), rows[0][2].strip()
@@ -69,15 +75,16 @@ def verify_slurm(submission, attempts, interval):
                 return
             if state in {"FAILED", "CANCELLED", "TIMEOUT", "OUT_OF_MEMORY", "NODE_FAIL",
                          "PREEMPTED", "BOOT_FAIL", "DEADLINE", "REVOKED"}:
-                raise Unverified("Slurm job {} ended {} ({})".format(job_id, state, exit_code), "failed")
+                raise Unverified(f"Slurm job {job_id} ended {state} ({exit_code})", "failed")
             if state == "COMPLETED" and re.fullmatch(r"\d+:\d+", exit_code):
-                raise Unverified("Slurm job {} exited {}".format(job_id, exit_code), "failed")
+                raise Unverified(f"Slurm job {job_id} exited {exit_code}", "failed")
         if attempt + 1 < attempts:
             time.sleep(interval)
     raise Unverified("No unambiguous successful Slurm accounting record for job " + job_id)
 
 
 def verify_pipeline_records(directory):
+    """Check expected pipeline statuses and report all available failure evidence."""
     # Collect available failures even if the inventory or another record is
     # missing/malformed. Incomplete evidence must not hide known failures.
     issues = []
@@ -93,15 +100,16 @@ def verify_pipeline_records(directory):
                     continue
                 records.setdefault(match.group(1), []).append(int(match.group(2)))
             except OSError as error:
-                issues.append("Could not read pipeline status record {}: {}".format(path, error))
+                issues.append(f"Could not read pipeline status record {path}: {error}")
     except OSError as error:
-        issues.append("Could not read pipeline status directory {}: {}".format(directory, error))
+        issues.append(f"Could not read pipeline status directory {directory}: {error}")
     failed = sorted(name for name, codes in records.items() if any(code != 0 for code in codes))
     if failed:
         issues.insert(0, "Downstream pipelines failed: " + ", ".join(failed))
     try:
         expected = read_json(directory / "expected_pipelines.json")
-        if not isinstance(expected, list) or not all(isinstance(name, str) and name for name in expected):
+        if (not isinstance(expected, list)
+                or not all(isinstance(name, str) and name for name in expected)):
             raise Unverified("Invalid expected pipeline inventory")
         missing = sorted(set(expected) - set(records))
         if missing:
@@ -112,11 +120,15 @@ def verify_pipeline_records(directory):
         raise Unverified("; ".join(issues), "failed" if failed else "unknown")
 
 
+# Keep the ordered validation checks together so malformed evidence fails before use.
+# pylint: disable-next=too-many-locals,too-many-branches
 def verify_manifest(manifest, receipt, identifier):
+    """Verify manifest identity, generated-file provenance and publication metadata."""
     if not isinstance(manifest, dict) or manifest.get("schema_version") != 1:
         raise Unverified("Invalid manifest schema")
     for key in ("run_id", "workflow_identifier", "patient"):
-        if not isinstance(receipt.get(key), str) or not receipt[key] or manifest.get(key) != receipt[key]:
+        if (not isinstance(receipt.get(key), str) or not receipt[key]
+                or manifest.get(key) != receipt[key]):
             raise Unverified("Manifest/completion identity mismatch: " + key)
     if manifest["workflow_identifier"] != identifier:
         raise Unverified("Manifest belongs to another patient/sample workflow")
@@ -128,34 +140,40 @@ def verify_manifest(manifest, receipt, identifier):
     for entry in entries:
         if not isinstance(entry, dict) or entry.get("generated") is not True:
             raise Unverified("Manifest contains an entry without generated-output provenance")
-        if any(entry.get(key) != manifest[key] for key in ("schema_version", "run_id", "workflow_identifier", "patient")):
+        if any(entry.get(key) != manifest[key]
+               for key in ("schema_version", "run_id", "workflow_identifier", "patient")):
             raise Unverified("Manifest entry belongs to another workflow or schema")
         entry_id = entry.get("entry_id")
-        if not isinstance(entry_id, str) or entry_id != entry.get("published_bam") or entry_id in seen:
+        if (not isinstance(entry_id, str) or entry_id != entry.get("published_bam")
+                or entry_id in seen):
             raise Unverified("Missing, inconsistent or duplicate manifest entry ID")
         seen.add(entry_id)
         sizes = entry.get("published_file_sizes")
         indexes, checksums = entry.get("published_indexes"), entry.get("published_checksums")
-        if not isinstance(indexes, list) or not isinstance(checksums, list) or not isinstance(sizes, dict):
+        if (not isinstance(indexes, list) or not isinstance(checksums, list)
+                or not isinstance(sizes, dict)):
             raise Unverified("Missing publication metadata for " + entry_id)
         paths = [entry_id] + indexes + checksums
         if not all(isinstance(path, str) for path in paths) or set(paths) != set(sizes):
             raise Unverified("Incomplete publication size inventory for " + entry_id)
         for name, expected_size in sizes.items():
             path = Path(name)
+            # JSON booleans must not be accepted as integer file sizes.
+            # pylint: disable-next=unidiomatic-typecheck
             if not path.is_absolute() or type(expected_size) is not int or expected_size < 0:
                 raise Unverified("Invalid published-file metadata: " + name)
             try:
                 path.resolve().relative_to(root.resolve())
-            except ValueError:
-                raise Unverified("Published file is outside the output root: " + name)
+            except ValueError as error:
+                raise Unverified("Published file is outside the output root: " + name) from error
         try:
             verify_publication(manifest, entry)
         except RecordError as error:
-            raise Unverified(str(error))
+            raise Unverified(str(error)) from error
 
 
 def check(work_dir, submission, identifier, manifest_path, output_dir, attempts=10, interval=3):
+    """Report workflow status and stage a manifest only after all evidence passes."""
     report = {"schema_version": 1, "workflow_identifier": identifier, "status": "unknown"}
     pipeline_records_checked = False
     try:
@@ -166,14 +184,18 @@ def check(work_dir, submission, identifier, manifest_path, output_dir, attempts=
         if submission != "-1":
             verify_slurm(submission, attempts, interval)
         receipt = read_json(work_dir / "child_completion.json")
-        if not isinstance(receipt, dict) or receipt.get("schema_version") != 1 or type(receipt.get("exit_code")) is not int:
+        if (not isinstance(receipt, dict) or receipt.get("schema_version") != 1
+                # Reject booleans even though bool subclasses int.
+                # pylint: disable-next=unidiomatic-typecheck
+                or type(receipt.get("exit_code")) is not int):
             raise Unverified("Invalid child completion receipt")
-        expected_run = "{}_{}".format(work_dir.parent.name, work_dir.name)
-        if receipt.get("run_id") != expected_run or receipt.get("workflow_identifier") != identifier:
+        expected_run = f"{work_dir.parent.name}_{work_dir.name}"
+        if (receipt.get("run_id") != expected_run
+                or receipt.get("workflow_identifier") != identifier):
             raise Unverified("Child completion receipt belongs to another invocation")
         report["run_id"] = expected_run
         if receipt["exit_code"] != 0:
-            raise Unverified("Child Nextflow exited {}".format(receipt["exit_code"]), "failed")
+            raise Unverified(f"Child Nextflow exited {receipt['exit_code']}", "failed")
         pipeline_records_checked = True
         verify_pipeline_records(work_dir / "PIPELINEEXITSTATUS")
         manifest = read_json(manifest_path)
@@ -183,11 +205,13 @@ def check(work_dir, submission, identifier, manifest_path, output_dir, attempts=
         if read_json(temporary) != manifest:
             raise Unverified("Manifest changed while being staged")
         temporary.replace(destination)
-        report.update(status="success", reason="Child, downstream statuses and published outputs verified")
+        report.update(status="success",
+                      reason="Child, downstream statuses and published outputs verified")
     except Unverified as error:
         report.update(status=error.status, reason=str(error))
-    except Exception as error:
-        report.update(status="unknown", reason="Status verification error: {}".format(error))
+    # Unexpected verification errors must remain report data, not abort the batch.
+    except Exception as error:  # pylint: disable=broad-exception-caught
+        report.update(status="unknown", reason=f"Status verification error: {error}")
 
     # Slurm/child failures block the handoff, but must not skip the downstream
     # diagnostics that were printed by the original status-check script.
@@ -198,12 +222,14 @@ def check(work_dir, submission, identifier, manifest_path, output_dir, attempts=
             report["reason"] += "; " + str(error)
             if error.status == "failed":
                 report["status"] = "failed"
-        except Exception as error:
-            report["reason"] += "; Downstream status verification error: {}".format(error)
+        # Preserve any earlier failure when supplemental diagnostics cannot run.
+        except Exception as error:  # pylint: disable=broad-exception-caught
+            report["reason"] += f"; Downstream status verification error: {error}"
     return report
 
 
 def main():
+    """Write and print the workflow status without failing for an unverified child."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--work-dir", type=Path, required=True)
     parser.add_argument("--submission", required=True)
@@ -211,9 +237,9 @@ def main():
     parser.add_argument("--manifest", type=Path, required=True)
     args = parser.parse_args()
     report = check(args.work_dir, args.submission, args.identifier, args.manifest, Path.cwd())
-    Path("workflow_status.json").write_text(json.dumps(report, indent=2) + "\n")
-    Path("workflow_status.txt").write_text(report["status"] + "\n")
-    print("{}: {} - {}".format(args.identifier, report["status"], report["reason"]))
+    Path("workflow_status.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    Path("workflow_status.txt").write_text(report["status"] + "\n", encoding="utf-8")
+    print(f"{args.identifier}: {report['status']} - {report['reason']}")
     return 0
 
 
