@@ -88,7 +88,7 @@ finalization_queue:
   type: 'String'
   required: true
   allow_empty: false
-  help: 'Finalization partition; empty uses the scheduler default'
+  help: 'Finalization partition; a nonempty value is required'
 finalization_cluster_options:
   type: 'String'
   required: true
