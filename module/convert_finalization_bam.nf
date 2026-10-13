@@ -2,6 +2,11 @@ def conversion_quote(value) {
     return "'" + value.toString().replace("'", "'\"'\"'") + "'"
 }
 
+def conversion_record_command(helper, manifest, request, step) {
+    return "python3 ${conversion_quote(helper)} ${step} --manifest ${conversion_quote(manifest)} " +
+        "--entry-id ${conversion_quote(request.entry_id)} ${request.delete_source ? '--delete-source' : ''}"
+}
+
 process convert_finalization_bam {
     tag { "${identifier}: ${request.entry_id}" }
     executor params.finalization_executor
@@ -13,7 +18,34 @@ process convert_finalization_bam {
     time '24h'
     maxForks params.finalization_max_conversions
     scratch false
+    cache false // Persistent records, rather than cached task outputs, decide what remains.
     errorStrategy 'ignore'
+
+    // These hooks run on the Slurm host, within this task. The samtools image
+    // has no Python, so host Python 3 is required. Finalization runs for the
+    // same entry are assumed not to overlap.
+    beforeScript {
+        def helper = "${moduleDir}/../templates/finalization_records.py"
+        """
+        rm -f conversion.ready
+        ${conversion_record_command(helper, request.manifest_path, request, 'prepare')} || exit \$?
+        """
+    }
+
+    afterScript {
+        def helper = "${moduleDir}/../templates/finalization_records.py"
+        def entry = request.entry
+        def sources = ([entry.published_bam] + entry.published_indexes + entry.published_checksums)
+            .collect { conversion_quote(it) }.join(' ')
+        """
+        if [ "\${nxf_main_ret:-0}" -eq 0 ] && [ -f conversion.ready ]; then
+            ${conversion_record_command(helper, request.manifest_path, request, 'authorize')} &&
+                ${request.delete_source ? "rm -f -- ${sources}" : ':'} &&
+                ${conversion_record_command(helper, request.manifest_path, request, 'complete')} ||
+                { nxf_main_ret=\$?; exit "\$nxf_main_ret"; }
+        fi
+        """
+    }
 
     // Bind the published files directly; do not stage/copy large BAMs.
     ext containerOptions: {
@@ -22,10 +54,8 @@ process convert_finalization_bam {
                     entry.published_indexes + entry.published_checksums
         def directories = paths.collect { file(it).parent } +
                           [entry.reference_fasta, entry.reference_fasta_fai].collect { file(it).toRealPath().parent }
-        def flag = params.containerization_system == 'docker' ? '-v' : '-B'
-        directories.unique().collect { "${flag} ${conversion_quote(it.toString() + ':' + it.toString())}" }.join(' ')
+        directories.unique().collect { "${params.container_mount_flag} ${conversion_quote(it.toString() + ':' + it.toString())}" }.join(' ')
     }
-    containerOptions { task.ext.containerOptions }
 
     input:
     tuple val(identifier), path(output_manifest), val(request)
@@ -38,9 +68,13 @@ process convert_finalization_bam {
     def bam = entry.published_bam
     def cram = bam.replaceFirst(/\.bam$/, '.cram')
     def reference = entry.reference_fasta + '##idx##' + entry.reference_fasta_fai
-    def sources = ([bam] + entry.published_indexes + entry.published_checksums).collect { conversion_quote(it) }.join(' ')
     """
     set -euo pipefail
+
+    if [ "\$(cat finalization.action)" != convert ]; then
+        touch conversion.ready
+        exit 0
+    fi
 
     samtools view -@ ${task.cpus - 1} -T ${conversion_quote(reference)} \\
         -O CRAM,store_md=1,store_nm=1 --write-index \\
@@ -54,6 +88,7 @@ process convert_finalization_bam {
     diff -u bam.flagstat cram.flagstat
     mv -- ${conversion_quote(cram + '.tmp')} ${conversion_quote(cram)}
     mv -- ${conversion_quote(cram + '.crai.tmp')} ${conversion_quote(cram + '.crai')}
-    ${request.delete_source ? "rm -- ${sources}" : ':'}
+    samtools --version > samtools.version
+    touch conversion.ready
     """
 }
