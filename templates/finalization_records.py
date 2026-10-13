@@ -298,8 +298,8 @@ def verify_publication(manifest, entry):
     return "unprocessed"
 
 
-def worker_record_step(manifest, entry, step, delete_source=False):
-    """Metadata hooks for the same conversion task; never convert or unlink files.
+def worker_record_step(manifest, entry, step, delete_source=False, record_action="cram"):
+    """Metadata hooks for finalization tasks; never convert or unlink files.
 
     The host-side hooks assume runs for this entry do not overlap.
     Conversion/flagstats run in the samtools container; shell cleanup follows
@@ -308,14 +308,14 @@ def worker_record_step(manifest, entry, step, delete_source=False):
     record = load_record(manifest, entry)
     if record is None:
         if step != "prepare":
-            raise RecordError("Conversion has no saved intent")
-        record = new_record(manifest, entry, "cram", delete_source)
+            raise RecordError("Finalization has no saved intent")
+        record = new_record(manifest, entry, record_action, delete_source)
         save_record(manifest, entry, record)
-    if record["action"] != "cram" or bool(record["deletions"]) != delete_source:
-        raise RecordError("Conversion policy differs from saved intent")
+    if record["action"] != record_action or bool(record["deletions"]) != delete_source:
+        raise RecordError("Finalization policy differs from saved intent")
     action = recovery_action(manifest, entry, record)
     if step == "prepare":
-        if action != "convert":
+        if record_action == "cram" and action != "convert":
             validation = record["conversion"]["validation"]
             Path("bam.flagstat").write_text(validation["bam_flagstat"])
             Path("cram.flagstat").write_text(validation["cram_flagstat"])
@@ -328,7 +328,7 @@ def worker_record_step(manifest, entry, step, delete_source=False):
                 {"method": "flagstat", "bam_flagstat": Path("bam.flagstat").read_text(),
                  "cram_flagstat": Path("cram.flagstat").read_text()})
             save_record(manifest, entry, record)
-        if record["state"] == "validated":
+        if record["state"] == "validated" or (record_action == "delete_alignment" and record["state"] == "pending"):
             record = begin_cleanup(manifest, entry, record)
             save_record(manifest, entry, record)
     elif step == "complete":
@@ -337,7 +337,7 @@ def worker_record_step(manifest, entry, step, delete_source=False):
                 record = record_deletion(manifest, entry, record, name)
                 save_record(manifest, entry, record)
         if record["state"] != "complete":
-            raise RecordError("Conversion cleanup is incomplete")
+            raise RecordError("Finalization cleanup is incomplete")
     else:
         raise RecordError("Unknown record step: " + step)
 
@@ -345,15 +345,16 @@ def worker_record_step(manifest, entry, step, delete_source=False):
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(description="Update conversion metadata; do not convert or delete files")
+    parser = argparse.ArgumentParser(description="Update finalization metadata; do not convert or delete files")
     parser.add_argument("step", choices=("prepare", "authorize", "complete"))
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--entry-id", required=True)
     parser.add_argument("--delete-source", action="store_true")
+    parser.add_argument("--action", choices=("cram", "delete_alignment"), default="cram")
     args = parser.parse_args()
     manifest = json.loads(args.manifest.read_text())
     entry, = [entry for entry in manifest["entries"] if entry["entry_id"] == args.entry_id]
-    worker_record_step(manifest, entry, args.step, args.delete_source)
+    worker_record_step(manifest, entry, args.step, args.delete_source, args.action)
 
 
 if __name__ == "__main__":
