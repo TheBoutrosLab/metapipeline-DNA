@@ -1,5 +1,6 @@
 import groovy.json.JsonSlurper
 include { convert_finalization_bam } from './convert_finalization_bam'
+include { delete_finalization_alignment_bams } from './delete_finalization_alignment_bams'
 
 
 def quote_finalization_arg(value) {
@@ -47,6 +48,7 @@ workflow finalize_outputs {
     conversion_requests = Channel.empty()
     conversion_results = Channel.empty()
     cleanup_requests = Channel.empty()
+    cleanup_results = Channel.empty()
     completed_entries = Channel.empty()
     if (enabled) {
         plan_output_finalization(verified_manifests)
@@ -68,9 +70,25 @@ workflow finalize_outputs {
         conversion_results = convert_finalization_bam.out.completed
         cleanup_requests = parsed.filter { identifier, manifest, plan -> !plan.cleanup.entries.isEmpty() }
             .map { identifier, manifest, plan -> [identifier, manifest, plan.cleanup] }
+
+        // Emit a group as soon as all conversions for that workflow succeed.
+        // Ignored failures emit no result, so their groups never become ready.
+        conversion_counts = parsed.map { identifier, manifest, plan -> [identifier, plan.conversions.size()] }
+        successful_conversions = conversion_results.combine(conversion_counts, by: 0)
+            .map { identifier, entry_id, bam_stats, cram_stats, count -> [groupKey(identifier, count), entry_id] }
+            .groupTuple()
+            .map { key, entry_ids -> [key.getGroupTarget(), entry_ids] }
+        ready_cleanup = cleanup_requests.filter { identifier, manifest, cleanup -> !cleanup.wait_for_entry_ids.isEmpty() }
+            .join(successful_conversions)
+            .filter { identifier, manifest, cleanup, entry_ids -> entry_ids.containsAll(cleanup.wait_for_entry_ids) }
+            .map { identifier, manifest, cleanup, entry_ids -> [identifier, manifest, cleanup] }
+            .mix(cleanup_requests.filter { identifier, manifest, cleanup -> cleanup.wait_for_entry_ids.isEmpty() })
+        delete_finalization_alignment_bams(ready_cleanup)
+        cleanup_results = delete_finalization_alignment_bams.out.completed
         completed_entries = parsed.flatMap { identifier, manifest, plan ->
             plan.completed.collect { entry_id -> [identifier, entry_id] }
         }.mix(conversion_results.map { identifier, entry_id, bam_stats, cram_stats -> [identifier, entry_id] })
+            .mix(cleanup_results.flatMap { identifier, entry_ids -> entry_ids.collect { entry_id -> [identifier, entry_id] } })
     }
 
     emit:
@@ -79,5 +97,6 @@ workflow finalize_outputs {
     conversion_results = conversion_results
     // Consumers must satisfy wait_for_entry_ids before running any cleanup.
     cleanup_requests = cleanup_requests
+    cleanup_results = cleanup_results
     completed_entries = completed_entries
 }
