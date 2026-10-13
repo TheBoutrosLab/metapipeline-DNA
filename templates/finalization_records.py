@@ -114,6 +114,11 @@ def _verify_conversion(manifest, entry, conversion):
         raise RecordError("Missing validated CRAM conversion record")
     expected_paths = {"cram": str(Path(entry["published_bam"]).with_suffix(".cram"))}
     expected_paths["crai"] = expected_paths["cram"] + ".crai"
+    # Older completed conversions predate checksum sidecars. New conversions
+    # always record both; verify their metadata without rereading the CRAM.
+    if "cram_sha512" in conversion or "crai_sha512" in conversion:
+        expected_paths["cram_sha512"] = expected_paths["cram"] + ".sha512"
+        expected_paths["crai_sha512"] = expected_paths["crai"] + ".sha512"
     for kind, expected_path in expected_paths.items():
         output = conversion.get(kind, {})
         if output.get("path") != expected_path:
@@ -218,6 +223,7 @@ def record_conversion(manifest, entry, record, tool_version, settings, validatio
     updated = deepcopy(record)
     cram = str(Path(entry["published_bam"]).with_suffix(".cram"))
     paths = {"cram": cram, "crai": cram + ".crai",
+             "cram_sha512": cram + ".sha512", "crai_sha512": cram + ".crai.sha512",
              "reference_fasta": entry["reference_fasta"],
              "reference_fasta_fai": entry["reference_fasta_fai"]}
     updated["conversion"] = {kind: {"path": name, "metadata": _metadata(Path(name))}
