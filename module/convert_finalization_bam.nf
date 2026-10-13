@@ -8,7 +8,8 @@ def conversion_record_command(helper, manifest, request, step) {
 }
 
 process convert_finalization_bam {
-    tag { "${identifier}: ${request.entry_id}" }
+    // The tag also appears in the scheduler job name; avoid paths and whitespace.
+    tag { "${identifier}_${request.entry.sample}".replaceAll(/[^A-Za-z0-9_.-]/, '_') }
 
     label 'finalization_executor'
 
