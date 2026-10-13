@@ -4,12 +4,14 @@ def cleanup_quote(value) {
 
 process delete_finalization_alignment_bams {
     tag { identifier }
+
     label 'finalization_executor'
+
     cpus 1
     memory '1 GB'
-    time '1h'
-    maxForks 1
-    scratch false
+
+    maxForks params.finalization_max_alignment_deletions
+
     cache false
     errorStrategy 'ignore'
 

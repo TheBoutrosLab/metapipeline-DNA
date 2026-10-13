@@ -9,13 +9,16 @@ def conversion_record_command(helper, manifest, request, step) {
 
 process convert_finalization_bam {
     tag { "${identifier}: ${request.entry_id}" }
+
     label 'finalization_executor'
+
     container 'ghcr.io/theboutroslab/samtools:1.23'
+
     cpus 4
     memory '8 GB'
-    time '24h'
+
     maxForks params.finalization_max_conversions
-    scratch false
+
     cache false // Persistent records, rather than cached task outputs, decide what remains.
     errorStrategy 'ignore'
 
