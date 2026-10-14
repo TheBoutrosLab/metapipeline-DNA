@@ -13,6 +13,11 @@ process convert_finalization_bam {
 
     label 'finalization_executor'
 
+    publishDir path: "${params.log_output_dir}/process-log",
+        mode: 'copy',
+        pattern: '.command.*',
+        saveAs: { "${task.process.replace(':', '/')}/${identifier}-${task.hash.replace('/', '-')}/log${file(it).name}" }
+
     container 'ghcr.io/theboutroslab/samtools:1.24'
 
     cpus 12
@@ -64,6 +69,7 @@ process convert_finalization_bam {
 
     output:
     tuple val(identifier), val(request.entry_id), path('bam.flagstat'), path('cram.flagstat'), emit: completed
+    path('.command.*'), emit: logs
 
     script:
     def entry = request.entry

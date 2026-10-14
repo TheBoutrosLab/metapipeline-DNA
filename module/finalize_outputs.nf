@@ -14,6 +14,11 @@ process plan_output_finalization {
 
     tag { "${identifier}: ${arm}" }
 
+    publishDir path: "${params.log_output_dir}/process-log",
+        mode: 'copy',
+        pattern: '.command.*',
+        saveAs: { "${task.process.replace(':', '/')}/${identifier}-${task.hash.replace('/', '-')}/log${file(it).name}" }
+
     publishDir path: "${params.final_output_dir}/intermediate/output-finalization-plans",
         mode: 'copy',
         pattern: 'finalization_plan.json',
@@ -25,6 +30,7 @@ process plan_output_finalization {
 
     output:
     tuple val(identifier), path(output_manifest), path('finalization_plan.json'), emit: plan
+    path('.command.*'), emit: logs
 
     script:
     def options = []

@@ -7,6 +7,11 @@ process delete_finalization_alignment_bams {
 
     label 'finalization_executor'
 
+    publishDir path: "${params.log_output_dir}/process-log",
+        mode: 'copy',
+        pattern: '.command.*',
+        saveAs: { "${task.process.replace(':', '/')}/${identifier}-${task.hash.replace('/', '-')}/log${file(it).name}" }
+
     cpus 1
     memory '1 GB'
 
@@ -20,6 +25,7 @@ process delete_finalization_alignment_bams {
 
     output:
     tuple val(identifier), val(entry_ids), emit: completed
+    path('.command.*'), emit: logs
 
     script:
     entry_ids = cleanup.entries.collect { it.entry_id }
