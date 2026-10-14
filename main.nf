@@ -218,7 +218,7 @@ process check_process_status {
         pattern: ".command.*",
         saveAs: { "${task.process}/${file(work_dir).getParent().getFileName()}-${file(work_dir).getFileName()}/log${file(it).getName()}" }
 
-    publishDir path: "${params.log_output_dir}/workflow-status",
+    publishDir path: "${params.final_output_dir}/intermediate/workflow-status",
         mode: 'copy',
         overwrite: true,
         pattern: 'workflow_status.json',
