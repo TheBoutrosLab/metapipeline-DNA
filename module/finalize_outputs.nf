@@ -17,7 +17,7 @@ process plan_output_finalization {
     publishDir path: "${params.log_output_dir}/process-log",
         mode: 'copy',
         pattern: '.command.*',
-        saveAs: { "${task.process.replace(':', '/')}/${identifier}-${task.hash.replace('/', '-')}/log${file(it).name}" }
+        saveAs: { "${task.process.replace(':', '/')}/${identifier}-${arm}-${task.hash.replace('/', '-')}/log${file(it).name}" }
 
     publishDir path: "${params.final_output_dir}/intermediate/output-finalization-plans",
         mode: 'copy',
