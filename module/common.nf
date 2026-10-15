@@ -23,7 +23,7 @@ String generate_weblog_args() {
     return "";
 }
 
-String identify_file(filepath) {
+String identify_file(filepath, Boolean resolve_symlinks = true) {
     def file_found = file(filepath);
 
     if (file_found in List) {
@@ -36,7 +36,7 @@ String identify_file(filepath) {
     if (!(file_found.exists())) {
         throw new AssertionError("Identified file `${file_found}` does not exist!");
     }
-    return file_found.toRealPath().toString();
+    return (resolve_symlinks ? file_found.toRealPath() : file_found.toAbsolutePath().normalize()).toString();
 }
 
 /**

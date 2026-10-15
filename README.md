@@ -20,6 +20,7 @@
     - [11. call-sCNA](#11-call-scna)
     - [12. call-SRC](#12-call-src)
   - [Configuration](#configuration)
+    - [Output finalization](#output-finalization)
     - [WGS global job submission params - UCLAHS-CDS](#uclahs-cds-wgs-global-sample-job-submission-parameters)
     - [Pipeline selection](#pipeline-selection)
     - [Pipeline-specific params](#pipeline-specific-params)
@@ -169,6 +170,24 @@ The following parameters are available at the metapipeline level:
 | `downstream_pipeline_order` | list | no | List indicating specific order in which to run pipelines downstream of recalibrate-BAM. Default: no order |
 | `input_csv` | path | no | Absolute path to input CSV when using CSV input |
 | `status_email_address` | string | no | Email address to notify when child pipelines start and complete. Default: `` |
+
+
+### Output finalization
+
+| Parameter | Type | Required | Description |
+| :---: | :--: | :------: | :---------: |
+| `finalization_cram_recalibrated_bams` | boolean | yes | Convert each generated recalibrate-BAM BAM to CRAM, with a CRAI index and SHA-512 checksum files for both outputs. Default: `true`. |
+| `finalization_delete_recalibrated_bams` | boolean | yes | Delete the recalibrated BAM and its index/checksum sidecars in the conversion task after successful conversion, checksum generation, and matching BAM/CRAM flagstats. Set to `false` to retain the BAM alongside the CRAM. Default: `true`. |
+| `finalization_delete_alignment_bams` | boolean | yes | Delete generated align-DNA BAMs and their index/checksum sidecars, independently of recalibrated BAM conversion. Default: `true`. |
+| `finalization_executor` | string | yes | Executor for conversion and alignment deletion tasks. Default: `slurm`; use `local` for local testing. |
+| `finalization_queue` | string | yes | Scheduler partition for finalization tasks. Must be nonempty; no default. The template uses `F72`. |
+| `finalization_cluster_options` | string | yes | Additional scheduler options for finalization tasks, configured separately from `clusterOptions`. May be an empty string; no default. The template uses `''`. |
+| `finalization_max_conversions` | positive integer | yes | Maximum concurrent conversion tasks per metapipeline run, with one task per recalibrated BAM. No default; the template uses `1`. |
+| `finalization_max_alignment_deletions` | positive integer | yes | Maximum concurrent alignment deletion tasks per metapipeline run, with one task per patient/sample workflow. No default; the template uses `1`. |
+
+The defaults above come from [default.config](config/default.config) and the [schema](config/schema.yaml). The [template](config/template.config) also enables all three action flags. Set all three to `false` to disable finalization. The queue, cluster options, and both concurrency limits must still be supplied when finalization is disabled.
+
+For a new BAM, enable conversion when requesting recalibrated BAM deletion. Deletion with conversion disabled is only supported when resuming an existing validated conversion with the same deletion policy. To convert while retaining the recalibrated BAM, enable `finalization_cram_recalibrated_bams` and disable `finalization_delete_recalibrated_bams` from the start.
 
 
 ### UCLAHS-CDS WGS global sample job submission parameters
