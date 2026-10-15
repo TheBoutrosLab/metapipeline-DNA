@@ -12,6 +12,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Support `BWA-MEM3` aligner
 
+### Changed
+
+- Recalibrate-BAM: `v2.6.0`
+
 ## [10.6.0] - 2026-10-09
 
 ### Changed
