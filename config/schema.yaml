@@ -234,7 +234,7 @@ override_recalibrate_bam:
 primary_aligner:
   type: 'String'
   required: false
-  choices: ['BWA-MEM2', 'minibwa', 'HISAT2']
+  choices: ['BWA-MEM2', 'BWA-MEM3', 'minibwa', 'HISAT2']
   help: 'Aligner whose BAM is used by downstream pipelines; defaults to BWA-MEM2 when selected, otherwise the first configured aligner'
 use_original_intervals:
   type: 'Bool'
