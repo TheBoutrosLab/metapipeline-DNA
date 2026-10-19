@@ -12,12 +12,16 @@ import sys
 import tempfile
 
 REPO = Path(__file__).resolve().parents[2]
+# Import production templates when running this test as a standalone script.
 sys.path.insert(0, str(REPO / 'templates'))
-import finalization_records as records
-from check_workflow_status import verify_manifest
+import finalization_records as records  # pylint: disable=wrong-import-position
+from check_workflow_status import verify_manifest  # pylint: disable=wrong-import-position
 
 
+# Keep the ordered integration scenario and its fixtures together.
+# pylint: disable-next=too-many-locals,too-many-branches,too-many-statements
 def main():
+    """Exercise conversion, cleanup, injected failures and recovery locally."""
     samtools = os.environ.get('FINALIZATION_TEST_SAMTOOLS') or shutil.which('samtools')
     if not samtools:
         raise SystemExit('Set FINALIZATION_TEST_SAMTOOLS to a samtools executable')
@@ -26,110 +30,140 @@ def main():
         output = root / "output with 'quotes"
         output.mkdir()
         reference = root / 'reference.fa'
-        reference.write_text('>chr1\n' + 'ACGT' * 25 + '\n')
+        reference.write_text('>chr1\n' + 'ACGT' * 25 + '\n', encoding="utf-8")
         subprocess.run([samtools, 'faidx', str(reference)], check=True)
         sam = root / 'input.sam'
         sam.write_text('@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:100\n'
                        'r1\t0\tchr1\t1\t60\t4M\t*\t0\t0\tACGT\tIIII\tNM:i:0\tMD:Z:4\n'
-                       'r2\t4\t*\t0\t0\t*\t*\t0\t0\tTGCA\tJJJJ\n')
+                       'r2\t4\t*\t0\t0\t*\t*\t0\t0\tTGCA\tJJJJ\n', encoding="utf-8")
         stream_failures = ('hashfail', 'bamstatsfail', 'cramstatsfail', 'writefail')
-        for name in ('good', 'mismatch', 'keep', 'interrupted', 'recordfail', 'mismatch_good', 'alignment_interrupted',
-                     'planning_failure', 'alignment_plan_failure') + stream_failures:
+        for name in ('good', 'mismatch', 'keep', 'interrupted', 'recordfail', 'mismatch_good',
+                     'alignment_interrupted', 'planning_failure',
+                     'alignment_plan_failure') + stream_failures:
             bam = output / (name + '.bam')
-            subprocess.run([samtools, 'view', '--no-PG', '-b', '-o', str(bam), str(sam)], check=True)
+            subprocess.run([samtools, 'view', '--no-PG', '-b', '-o', str(bam), str(sam)],
+                check=True)
             subprocess.run([samtools, 'index', str(bam)], check=True)
             checksum = Path(str(bam) + '.sha512')
-            checksum.write_text('fixture checksum\n')
+            checksum.write_text('fixture checksum\n', encoding="utf-8")
             paths = [bam, Path(str(bam) + '.bai'), checksum]
-            identity = dict(schema_version=1, run_id='aa_child', workflow_identifier=name, patient='P')
+            identity = {'schema_version': 1, 'run_id': 'aa_child', 'workflow_identifier': name,
+                'patient': 'P'}
             entry = dict(identity, entry_id=str(bam), published_bam=str(bam), generated=True,
                          stage='recalibrate-BAM', sample=name, aligner='BWA-MEM2',
-                         reference_fasta=str(reference), reference_fasta_fai=str(reference) + '.fai',
+                         reference_fasta=str(reference),
+                         reference_fasta_fai=str(reference) + '.fai',
                          published_indexes=[str(paths[1])], published_checksums=[str(checksum)],
                          published_file_sizes={str(p): p.stat().st_size for p in paths})
-            (root / (name + '.json')).write_text(json.dumps(dict(identity, publish_root=str(output), entries=[entry])))
+            (root / (name + '.json')).write_text(json.dumps(dict(identity,
+                publish_root=str(output), entries=[entry])), encoding="utf-8")
         # Alignment deletion must proceed even if one of two conversions fails.
-        mismatch = json.loads((root / 'mismatch.json').read_text())
-        second = json.loads((root / 'mismatch_good.json').read_text())['entries'][0]
+        mismatch = json.loads((root / 'mismatch.json').read_text(encoding="utf-8"))
+        second = json.loads((root / 'mismatch_good.json').read_text(encoding="utf-8"))['entries'][0]
         second['workflow_identifier'] = 'mismatch'
         mismatch['entries'].append(second)
-        (root / 'mismatch.json').write_text(json.dumps(mismatch))
-        alignment_workflows = ('good', 'mismatch', 'interrupted', 'recordfail', 'alignment_only', 'alignment_interrupted',
-                              'planning_failure', 'alignment_plan_failure')
+        (root / 'mismatch.json').write_text(json.dumps(mismatch), encoding="utf-8")
+        alignment_workflows = (
+            'good', 'mismatch', 'interrupted', 'recordfail', 'alignment_only',
+            'alignment_interrupted', 'planning_failure', 'alignment_plan_failure')
         for name in alignment_workflows:
             manifest_path = root / (name + '.json')
-            identity = dict(schema_version=1, run_id='aa_child', workflow_identifier=name, patient='P')
-            manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else dict(identity, publish_root=str(output), entries=[])
+            identity = {'schema_version': 1, 'run_id': 'aa_child', 'workflow_identifier': name,
+                'patient': 'P'}
+            manifest = json.loads(
+                manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else dict(
+                    identity, publish_root=str(output), entries=[])
             bam = output / (name + '.aligned.bam')
             paths = [bam, Path(str(bam) + '.bai'), Path(str(bam) + '.sha512')]
             for path in paths:
-                path.write_text('alignment fixture')
+                path.write_text('alignment fixture', encoding="utf-8")
             manifest['entries'].append(dict(identity, entry_id=str(bam), published_bam=str(bam),
                 generated=True, stage='align-DNA', sample=name, aligner='BWA-MEM2',
                 published_indexes=[str(paths[1])], published_checksums=[str(paths[2])],
                 published_file_sizes={str(path): path.stat().st_size for path in paths}))
-            manifest_path.write_text(json.dumps(manifest))
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
         # Fail only conversion planning for one workflow, and only alignment
         # planning for another. The other arm must still execute in each case.
         recovery_reference = root / 'recovery-reference.fa'
         shutil.copyfile(reference, recovery_reference)
         failed_manifest_path = root / 'planning_failure.json'
-        failed_manifest = json.loads(failed_manifest_path.read_text())
+        failed_manifest = json.loads(failed_manifest_path.read_text(encoding="utf-8"))
         failed_manifest['entries'][0]['reference_fasta'] = str(recovery_reference)
         failed_manifest['entries'][0]['reference_fasta_fai'] = str(recovery_reference) + '.fai'
-        failed_manifest_path.write_text(json.dumps(failed_manifest))
-        (output / 'alignment_plan_failure.aligned.bam').write_text('changed alignment size')
+        failed_manifest_path.write_text(json.dumps(failed_manifest), encoding="utf-8")
+        (output / 'alignment_plan_failure.aligned.bam').write_text('changed alignment size',
+            encoding="utf-8")
         unlisted = output / 'unlisted.bam'
-        unlisted.write_text('keep this file')
-        keep_manifest = json.loads((root / 'keep.json').read_text())
+        unlisted.write_text('keep this file', encoding="utf-8")
+        keep_manifest = json.loads((root / 'keep.json').read_text(encoding="utf-8"))
         keep_record = records.record_path(keep_manifest, keep_manifest['entries'][0])
-        (root / 'keep-record.txt').write_text(str(keep_record))
+        (root / 'keep-record.txt').write_text(str(keep_record), encoding="utf-8")
         wrappers = root / 'bin'
         wrappers.mkdir()
         sbatch = wrappers / 'sbatch'
-        sbatch.write_text('#!/bin/bash\necho "Unexpected Slurm submission in local test" >&2\nexit 99\n')
+        sbatch.write_text(
+            '#!/bin/bash\necho "Unexpected Slurm submission in local test" >&2\nexit 99\n',
+                encoding="utf-8")
         sbatch.chmod(0o755)
         wrapper = wrappers / 'samtools'
         conversion_log = root / 'conversions.log'
         resumed = root / 'resumed'
-        wrapper.write_text('#!/bin/bash\nset -e\n'
-                           + 'if [[ "$1" == view ]]; then\n'
-                           + '  for arg in "$@"; do\n'
-                           + '    if [[ "$arg" == -##idx##* ]]; then\n'
-                           + '      bam=${arg#-##idx##}; printf "%s\\n" "${bam%.cram.crai.tmp}.bam" >> '
-                           + shlex.quote(str(conversion_log)) + '\n'
-                           + '    fi\n  done\nfi\n'
-                           + shlex.quote(samtools) + ' "$@"\n'
-                           + 'if [[ "$1" == flagstat && "$*" == *reference=* && ! -f '
-                           + shlex.quote(str(resumed)) + ' ]] && grep -q /mismatch.cram.tmp .command.sh; '
-                           + 'then echo mismatch; fi\n'
-                           + 'if [[ "$1" == flagstat && ! -f ' + shlex.quote(str(resumed)) + ' ]]; then\n'
-                           + '  if [[ -f bamstatsfail.json && "$*" != *reference=* ]]; then exit 46; fi\n'
-                           + '  if [[ -f cramstatsfail.json && "$*" == *reference=* ]]; then exit 47; fi\n'
-                           + 'fi\n')
+        wrapper.write_text(
+            '#!/bin/bash\nset -e\n'
+            + 'if [[ "$1" == view ]]; then\n'
+            + '  for arg in "$@"; do\n'
+            + '    if [[ "$arg" == -##idx##* ]]; then\n'
+            + '      bam=${arg#-##idx##}; printf "%s\\n" '
+            '"${bam%.cram.crai.tmp}.bam" >> '
+            + shlex.quote(str(conversion_log)) + '\n'
+            + '    fi\n  done\nfi\n'
+            + shlex.quote(samtools) + ' "$@"\n'
+            + 'if [[ "$1" == flagstat && "$*" == *reference=* && ! -f '
+            + shlex.quote(
+            str(resumed)) + ' ]] && grep -q /mismatch.cram.tmp .command.sh; '
+            + 'then echo mismatch; fi\n'
+            + 'if [[ "$1" == flagstat && ! -f ' + shlex.quote(
+            str(resumed)) + ' ]]; then\n'
+            + '  if [[ -f bamstatsfail.json && "$*" != *reference=* ]]; '
+            'then exit 46; fi\n'
+            + '  if [[ -f cramstatsfail.json && "$*" == *reference=* ]]; '
+            'then exit 47; fi\n'
+            + 'fi\n', encoding="utf-8"
+        )
         wrapper.chmod(0o755)
         for tool, fixture, code in (('sha512sum', 'hashfail', 45), ('tee', 'writefail', 48)):
             tool_wrapper = wrappers / tool
-            tool_wrapper.write_text('#!/bin/bash\nset -e\n'
-                                    + shlex.quote(shutil.which(tool)) + ' "$@"\n'
-                                    + 'if [[ -f ' + fixture + '.json && ! -f '
-                                    + shlex.quote(str(resumed)) + ' ]]; then exit ' + str(code) + '; fi\n')
+            tool_wrapper.write_text(
+                '#!/bin/bash\nset -e\n'
+                + shlex.quote(shutil.which(tool)) + ' "$@"\n'
+                + 'if [[ -f ' + fixture + '.json && ! -f '
+                + shlex.quote(str(resumed)) + ' ]]; then exit ' + str(
+                code) + '; fi\n', encoding="utf-8"
+            )
             tool_wrapper.chmod(0o755)
         # Fail host cleanup after removing only the BAM. The task must fail and
         # resume the remaining sidecars without rerunning samtools conversion.
         rm_wrapper = wrappers / 'rm'
-        rm_wrapper.write_text('#!/bin/bash\nset -e\n'
-                              + 'if [[ ! -f ' + shlex.quote(str(resumed)) + ' ]]; then\n'
-                              + '  for arg in "$@"; do\n'
-                              + '    if [[ "$arg" == */interrupted.bam ]]; then /bin/rm -- "$arg"; exit 42; fi\n'
-                              + '    if [[ "$arg" == */alignment_interrupted.aligned.bam ]]; then /bin/rm -- "$arg"; exit 44; fi\n'
-                              + '  done\nfi\nexec /bin/rm "$@"\n')
+        rm_wrapper.write_text(
+            '#!/bin/bash\nset -e\n'
+            + 'if [[ ! -f ' + shlex.quote(str(resumed)) + ' ]]; then\n'
+            + '  for arg in "$@"; do\n'
+            + '    if [[ "$arg" == */interrupted.bam ]]; then /bin/rm '
+            '-- "$arg"; exit 42; fi\n'
+            + '    if [[ "$arg" == */alignment_interrupted.aligned.bam '
+            ']]; then /bin/rm -- "$arg"; exit 44; fi\n'
+            + '  done\nfi\nexec /bin/rm "$@"\n', encoding="utf-8"
+        )
         rm_wrapper.chmod(0o755)
         python_wrapper = wrappers / 'python3'
-        python_wrapper.write_text('#!/bin/bash\nset -e\n'
-                                  + 'if [[ "$2" == authorize && "$*" == *recordfail.json* && "$*" != *delete_alignment* && ! -f '
-                                  + shlex.quote(str(resumed)) + ' ]]; then exit 43; fi\n'
-                                  + 'exec ' + shlex.quote(sys.executable) + ' "$@"\n')
+        python_wrapper.write_text(
+            '#!/bin/bash\nset -e\n'
+            + 'if [[ "$2" == authorize && "$*" == *recordfail.json* '
+            '&& "$*" != *delete_alignment* && ! -f '
+            + shlex.quote(str(resumed)) + ' ]]; then exit 43; fi\n'
+            + 'exec ' + shlex.quote(sys.executable) + ' "$@"\n',
+            encoding="utf-8"
+        )
         python_wrapper.chmod(0o755)
         config = root / 'nextflow.config'
         config.write_text("includeConfig '" + str(REPO / 'config/default.config') + "'\n" + """
@@ -157,11 +191,14 @@ process {
         memory = '128 MB'
     }
 }
-""")
+""", encoding="utf-8")
         workflow = root / 'test.nf'
-        workflow.write_text("include { finalize_outputs } from '" + str(REPO / 'module/finalize_outputs') + "'\n"
-                            + "include { convert_finalization_bam as stream_failures } from '" + str(REPO / 'module/convert_finalization_bam') + "'\n"
-                            + "include { convert_finalization_bam as keep_bam } from '" + str(REPO / 'module/convert_finalization_bam') + "'\n" + """
+        workflow.write_text(
+            "include { finalize_outputs } from '" + str(REPO / 'module/finalize_outputs') + "'\n"
+                            + "include { convert_finalization_bam as stream_failures } from '"
+                                + str(REPO / 'module/convert_finalization_bam') + "'\n"
+                            + "include { convert_finalization_bam as keep_bam } from "
+                                "'" + str(REPO / 'module/convert_finalization_bam') + "'\n" + """
 import groovy.json.JsonSlurper
 workflow {
     finalize_outputs(Channel.of(['good', file("${projectDir}/good.json")], ['mismatch', file("${projectDir}/mismatch.json")],
@@ -202,39 +239,46 @@ workflow {
         'Every stream consumer must succeed before completion'
     }
 }
-""")
+""", encoding="utf-8")
         environment = dict(os.environ, PATH=str(wrappers) + os.pathsep + os.environ['PATH'])
         command = (sys.argv[1:] or ['nextflow']) + ['-C', str(config), 'run', str(workflow),
-                                '-profile', 'testing', '-ansi-log', 'false', '-w', str(root / 'work'),
+                                '-profile', 'testing', '-ansi-log', 'false', '-w',
+                                str(root / 'work'),
                                 '--finalization_cram_recalibrated_bams', 'true',
-                                '--finalization_delete_recalibrated_bams', 'true', '--finalization_delete_alignment_bams', 'true']
-        result = subprocess.run(command, cwd=root, env=environment, timeout=180)
+                                '--finalization_delete_recalibrated_bams', 'true',
+                                '--finalization_delete_alignment_bams', 'true']
+        result = subprocess.run(command, cwd=root, env=environment, timeout=180, check=False)
         if result.returncode:
             for error in (root / 'work').rglob('.command.err'):
-                print(error.read_text())
+                print(error.read_text(encoding="utf-8"))
             raise SystemExit(result.returncode)
-        exit_codes = {(task / '.exitcode').read_text().strip() for task in (root / 'work').glob('*/*')
+        exit_codes = {
+            (task / '.exitcode').read_text(encoding="utf-8").strip() for task in (
+                root / 'work').glob('*/*')
                       if (task / '.exitcode').exists()}
         assert {'42', '43', '44', '45', '46', '47', '48'}.issubset(exit_codes), exit_codes
         for name in stream_failures:
-            manifest = json.loads((root / (name + '.json')).read_text())
+            manifest = json.loads((root / (name + '.json')).read_text(encoding="utf-8"))
             entry = manifest['entries'][0]
             assert records.load_record(manifest, entry)['state'] == 'pending'
             assert all(Path(path).exists() for path in entry['published_file_sizes'])
             assert not Path(entry['published_bam']).with_suffix('.cram').exists()
-        for name in ('good', 'keep', 'mismatch', 'interrupted', 'recordfail', 'alignment_interrupted', 'planning_failure', 'alignment_plan_failure'):
-            manifest = json.loads((root / (name + '.json')).read_text())
+        for name in ('good', 'keep', 'mismatch', 'interrupted', 'recordfail',
+            'alignment_interrupted', 'planning_failure', 'alignment_plan_failure'):
+            manifest = json.loads((root / (name + '.json')).read_text(encoding="utf-8"))
             if name != 'alignment_plan_failure':
                 verify_manifest(manifest, manifest, name)
             saved = records.load_record(manifest, manifest['entries'][0])
-            expected_state = {'mismatch': 'pending', 'recordfail': 'pending', 'interrupted': 'cleanup_pending'}.get(name, 'complete')
+            expected_state = {'mismatch': 'pending', 'recordfail': 'pending',
+                'interrupted': 'cleanup_pending'}.get(name, 'complete')
             if name == 'planning_failure':
                 assert saved is None, saved
             else:
                 assert saved['state'] == expected_state, saved
             bam = output / (name + '.bam')
             for source in (bam, Path(str(bam) + '.bai'), Path(str(bam) + '.sha512')):
-                expected_exists = name not in ('good', 'alignment_interrupted', 'alignment_plan_failure') and not (name == 'interrupted' and source == bam)
+                expected_exists = name not in ('good', 'alignment_interrupted',
+                    'alignment_plan_failure') and not (name == 'interrupted' and source == bam)
                 assert source.exists() == expected_exists, str(source)
             cram = bam.with_suffix('.cram')
             assert cram.exists() == (name not in ('mismatch', 'planning_failure'))
@@ -242,21 +286,25 @@ workflow {
                 assert Path(str(cram) + '.crai').exists()
                 for sidecar in (str(cram) + '.sha512', str(cram) + '.crai.sha512'):
                     subprocess.run(['sha512sum', '--check', sidecar], cwd=output, check=True)
-                decoded = subprocess.check_output([samtools, 'view', '--input-fmt-option', 'decode_md=0',
-                                                   '-T', str(reference), str(cram)], text=True)
-                assert decoded == ''.join(sam.read_text().splitlines(keepends=True)[2:])
+                decoded = subprocess.check_output(
+                    [samtools, 'view', '--input-fmt-option', 'decode_md=0',
+                     '-T', str(reference), str(cram)], text=True)
+                assert decoded == ''.join(
+                    sam.read_text(encoding="utf-8").splitlines(keepends=True)[2:])
         assert not list((root / 'work').rglob('*.bam')), 'BAM was staged'
         for name in alignment_workflows:
-            manifest = json.loads((root / (name + '.json')).read_text())
+            manifest = json.loads((root / (name + '.json')).read_text(encoding="utf-8"))
             if name != 'alignment_plan_failure':
                 verify_manifest(manifest, manifest, name)
             alignment = manifest['entries'][-1]
             record = records.load_record(manifest, alignment)
             notice = Path(alignment['published_bam'] + '.deleted.txt')
-            assert notice.exists() == (name not in ('alignment_plan_failure', 'alignment_interrupted'))
+            assert notice.exists() == (name not in ('alignment_plan_failure',
+                'alignment_interrupted'))
             if notice.exists():
-                assert notice.read_text() == (
-                    'Alignment BAM deleted by the finalization workflow: ' + alignment['published_bam'] + '\n')
+                assert notice.read_text(encoding="utf-8") == (
+                    'Alignment BAM deleted by the finalization workflow: '
+                    + alignment['published_bam'] + '\n')
             if name == 'alignment_plan_failure':
                 assert record is None
             elif name == 'alignment_interrupted':
@@ -264,18 +312,24 @@ workflow {
             else:
                 assert record['state'] == 'complete', 'Conversion failure blocked alignment cleanup'
             for source in alignment['published_file_sizes']:
-                removed = name != 'alignment_plan_failure' and (name != 'alignment_interrupted' or source == alignment['published_bam'])
+                removed = name != 'alignment_plan_failure' and (
+                    name != 'alignment_interrupted' or source == alignment['published_bam'])
                 assert Path(source).exists() != removed, source
         assert not (output / 'mismatch_good.bam').exists()
-        assert unlisted.read_text() == 'keep this file'
-        assert len(list((root / 'main_workflow/intermediate/output-finalization-plans').rglob('finalization_plan.json'))) == 14
+        assert unlisted.read_text(encoding="utf-8") == 'keep this file'
+        assert len(
+            list((root / 'main_workflow/intermediate/output-finalization-plans').rglob(
+                'finalization_plan.json'))) == 14
         subprocess.run([samtools, 'faidx', str(recovery_reference)], check=True)
-        (output / 'alignment_plan_failure.aligned.bam').write_text('alignment fixture')
+        (output / 'alignment_plan_failure.aligned.bam').write_text('alignment fixture',
+            encoding="utf-8")
         resumed.touch()
-        subprocess.run(command + ['-resume', '--resuming', 'true'], cwd=root, env=environment, check=True, timeout=180)
-        conversions = conversion_log.read_text().splitlines()
-        for name in ('good', 'keep', 'mismatch', 'interrupted', 'recordfail', 'alignment_interrupted', 'planning_failure', 'alignment_plan_failure'):
-            manifest = json.loads((root / (name + '.json')).read_text())
+        subprocess.run(command + ['-resume', '--resuming', 'true'], cwd=root, env=environment,
+            check=True, timeout=180)
+        conversions = conversion_log.read_text(encoding="utf-8").splitlines()
+        for name in ('good', 'keep', 'mismatch', 'interrupted', 'recordfail',
+            'alignment_interrupted', 'planning_failure', 'alignment_plan_failure'):
+            manifest = json.loads((root / (name + '.json')).read_text(encoding="utf-8"))
             verify_manifest(manifest, manifest, name)
             assert records.load_record(manifest, manifest['entries'][0])['state'] == 'complete'
             for source in manifest['entries'][0]['published_file_sizes']:
@@ -283,18 +337,20 @@ workflow {
             expected_count = 2 if name in ('mismatch', 'recordfail') else 1
             assert conversions.count(str(output / (name + '.bam'))) == expected_count, conversions
         for name in alignment_workflows:
-            manifest = json.loads((root / (name + '.json')).read_text())
+            manifest = json.loads((root / (name + '.json')).read_text(encoding="utf-8"))
             verify_manifest(manifest, manifest, name)
             alignment = manifest['entries'][-1]
-            assert Path(alignment['published_bam'] + '.deleted.txt').read_text() == (
-                'Alignment BAM deleted by the finalization workflow: ' + alignment['published_bam'] + '\n')
+            assert Path(alignment['published_bam'] + '.deleted.txt').read_text(
+                encoding="utf-8") == (
+                'Alignment BAM deleted by the finalization workflow: '
+                + alignment['published_bam'] + '\n')
             for entry in manifest['entries']:
                 assert records.load_record(manifest, entry)['state'] == 'complete'
                 assert all(not Path(source).exists() for source in entry['published_file_sizes'])
         for sidecar in output.glob('*.cram*.sha512'):
             subprocess.run(['sha512sum', '--check', str(sidecar)], cwd=output, check=True)
         for name in stream_failures:
-            manifest = json.loads((root / (name + '.json')).read_text())
+            manifest = json.loads((root / (name + '.json')).read_text(encoding="utf-8"))
             entry = manifest['entries'][0]
             assert records.load_record(manifest, entry)['state'] == 'complete'
             assert all(not Path(path).exists() for path in entry['published_file_sizes'])
@@ -305,8 +361,9 @@ workflow {
             log_root = root / 'logs/process-log/finalize_outputs' / process
             assert list(log_root.glob('*/log.command.sh')), process
             assert list(log_root.glob('*/log.command.err')), process
-        assert unlisted.read_text() == 'keep this file'
-        print('Late executor override, independent planning failures, worker failures and resume passed')
+        assert unlisted.read_text(encoding="utf-8") == 'keep this file'
+        print('Late executor override, independent planning failures, worker failures and '
+            'resume passed')
 
 
 if __name__ == '__main__':

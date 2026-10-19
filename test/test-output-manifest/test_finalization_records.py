@@ -8,13 +8,18 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+# Import production templates when running this test as a standalone script.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "templates"))
-import finalization_records as records
-import check_workflow_status as checker
+import finalization_records as records  # pylint: disable=wrong-import-position
+import check_workflow_status as checker  # pylint: disable=wrong-import-position
 
 
-class FinalizationRecordsTest(unittest.TestCase):
+class FinalizationFixture(unittest.TestCase):
+    """Share file and record fixtures without inheriting test methods."""
     def setUp(self):
+        """Create isolated files and metadata for each test."""
+        # addCleanup keeps the directory alive through the test and handles setup failures.
+        # pylint: disable-next=consider-using-with
         temporary = tempfile.TemporaryDirectory(prefix="finalization-records-")
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
@@ -23,12 +28,13 @@ class FinalizationRecordsTest(unittest.TestCase):
         self.bam = self.published / "sample.bam"
         paths = [self.bam, Path(str(self.bam) + ".bai"), Path(str(self.bam) + ".sha512")]
         for path in paths:
-            path.write_text("fixture")
+            path.write_text("fixture", encoding="utf-8")
         self.reference = self.root / "reference.fa"
-        self.reference.write_text(">chr1\nACGT\n")
+        self.reference.write_text(">chr1\nACGT\n", encoding="utf-8")
         self.fai = self.root / "reference.fa.fai"
-        self.fai.write_text("fixture")
-        self.identity = dict(schema_version=1, run_id="aa_child", workflow_identifier="P", patient="P")
+        self.fai.write_text("fixture", encoding="utf-8")
+        self.identity = {'schema_version': 1, 'run_id': "aa_child", 'workflow_identifier': "P",
+            'patient': "P"}
         self.entry = dict(self.identity, entry_id=str(self.bam), published_bam=str(self.bam),
                           published_indexes=[str(paths[1])], published_checksums=[str(paths[2])],
                           published_file_sizes={str(p): p.stat().st_size for p in paths},
@@ -37,10 +43,12 @@ class FinalizationRecordsTest(unittest.TestCase):
         self.manifest = dict(self.identity, publish_root=str(self.published), entries=[self.entry])
         self.work = self.root / "aa/child"
         (self.work / "PIPELINEEXITSTATUS").mkdir(parents=True)
-        (self.work / "PIPELINEEXITSTATUS/expected_pipelines.json").write_text("[]")
-        (self.work / "child_completion.json").write_text(json.dumps(dict(self.identity, exit_code=0)))
+        (self.work / "PIPELINEEXITSTATUS/expected_pipelines.json").write_text("[]",
+            encoding="utf-8")
+        (self.work / "child_completion.json").write_text(json.dumps(dict(self.identity,
+            exit_code=0)), encoding="utf-8")
         self.manifest_path = self.work / "manifest.json"
-        self.manifest_path.write_text(json.dumps(self.manifest))
+        self.manifest_path.write_text(json.dumps(self.manifest), encoding="utf-8")
         self.destination = self.root / "status-task"
         self.destination.mkdir()
         self.cram = self.bam.with_suffix('.cram')
@@ -49,28 +57,33 @@ class FinalizationRecordsTest(unittest.TestCase):
         self.crai_sha512 = Path(str(self.crai) + '.sha512')
 
     def start(self, delete_source=True, action="cram"):
+        """Persist the initial finalization intent and return its record."""
         record = records.new_record(self.manifest, self.entry, action, delete_source)
         records.save_record(self.manifest, self.entry, record)
         return record
 
     def convert(self, record):
-        self.cram.write_text("CRAM fixture")
-        self.crai.write_text("index fixture")
-        self.cram_sha512.write_text("CRAM checksum fixture")
-        self.crai_sha512.write_text("CRAI checksum fixture")
+        """Create small replacement files and record a successful conversion."""
+        self.cram.write_text("CRAM fixture", encoding="utf-8")
+        self.crai.write_text("index fixture", encoding="utf-8")
+        self.cram_sha512.write_text("CRAM checksum fixture", encoding="utf-8")
+        self.crai_sha512.write_text("CRAI checksum fixture", encoding="utf-8")
         result = records.record_conversion(self.manifest, self.entry, record, "test-version",
                                             {"store_md": True, "store_nm": True},
-                                            {"method": "flagstat", "bam_flagstat": "10 + 0 in total\n",
+                                            {"method": "flagstat",
+                                            "bam_flagstat": "10 + 0 in total\n",
                                              "cram_flagstat": "10 + 0 in total\n"})
         records.save_record(self.manifest, self.entry, result)
         return result
 
     def begin_cleanup(self, record):
+        """Persist cleanup authorization and return the updated record."""
         result = records.begin_cleanup(self.manifest, self.entry, record)
         records.save_record(self.manifest, self.entry, result)
         return result
 
     def finish(self, record):
+        """Delete the fixture sources and persist each completed deletion."""
         for name in record["deletions"]:
             Path(name).unlink()
             record = records.record_deletion(self.manifest, self.entry, record, name)
@@ -78,17 +91,25 @@ class FinalizationRecordsTest(unittest.TestCase):
         return record
 
     def check(self, expected):
-        self.manifest_path.write_text(json.dumps(self.manifest))
+        """Run status verification against the fixture files."""
+        self.manifest_path.write_text(json.dumps(self.manifest), encoding="utf-8")
         result = checker.check(self.work, "-1", "P", self.manifest_path, self.destination)
         self.assertEqual(result["status"], expected, result)
-        self.assertEqual((self.destination / "output_manifest.json").exists(), expected == "success")
+        self.assertEqual((self.destination / "output_manifest.json").exists(),
+            expected == "success")
         return result
 
+
+class FinalizationRecordsTest(FinalizationFixture):
+    """Verify persistent records and recovery after interrupted finalization."""
+
     def test_unexplained_missing_bam_blocks_resume(self):
+        """Verify unexplained missing BAM blocks resume."""
         self.bam.unlink()
         self.check("unknown")
 
     def test_pending_conversion_resumes_only_with_intact_sources(self):
+        """Verify pending conversion resumes only with intact sources."""
         record = self.start()
         self.assertEqual(records.recovery_action(self.manifest, self.entry, record), "convert")
         self.check("success")
@@ -96,11 +117,13 @@ class FinalizationRecordsTest(unittest.TestCase):
         self.check("unknown")
 
     def test_validated_conversion_reused_for_cleanup(self):
+        """Verify validated conversion reused for cleanup."""
         record = self.convert(self.start())
         self.assertEqual(records.recovery_action(self.manifest, self.entry, record), "cleanup")
         self.check("success")
 
     def test_missing_checksum_blocks_cleanup(self):
+        """Verify missing checksum blocks cleanup."""
         record = self.convert(self.start())
         self.cram_sha512.unlink()
         with self.assertRaisesRegex(records.RecordError, "Required finalization file is missing"):
@@ -108,25 +131,30 @@ class FinalizationRecordsTest(unittest.TestCase):
         self.assertTrue(self.bam.exists())
 
     def test_changed_index_checksum_blocks_resume(self):
+        """Verify changed index checksum blocks resume."""
         self.convert(self.start())
-        self.crai_sha512.write_text("changed checksum")
+        self.crai_sha512.write_text("changed checksum", encoding="utf-8")
         self.check("unknown")
 
     def test_legacy_completed_conversion_without_checksums_can_resume(self):
+        """Verify legacy completed conversion without checksums can resume."""
         record = self.finish(self.begin_cleanup(self.convert(self.start())))
         for kind in ('cram_sha512', 'crai_sha512'):
             Path(record['conversion'].pop(kind)['path']).unlink()
         # Simulate a record saved before streaming checksums were introduced.
-        records.record_path(self.manifest, self.entry).write_text(json.dumps(record))
+        records.record_path(self.manifest, self.entry).write_text(json.dumps(record),
+            encoding="utf-8")
         self.check("success")
 
     def test_missing_bam_before_cleanup_intent_blocks_resume(self):
+        """Verify missing BAM before cleanup intent blocks resume."""
         self.convert(self.start())
         self.bam.unlink()
         self.check("unknown")
 
     def test_cleanup_recovers_crash_between_unlink_and_record_update(self):
-        record = self.begin_cleanup(self.convert(self.start()))
+        """Verify cleanup recovers crash between unlink and record update."""
+        self.begin_cleanup(self.convert(self.start()))
         self.bam.unlink()
         self.check("success")
         restored = records.load_record(self.manifest, self.entry)
@@ -142,36 +170,42 @@ class FinalizationRecordsTest(unittest.TestCase):
         self.check("success")
 
     def test_completed_cleanup_requires_replacement_and_index(self):
+        """Verify completed cleanup requires replacement and index."""
         self.finish(self.begin_cleanup(self.convert(self.start())))
         self.check("success")
         self.crai.unlink()
         self.check("unknown")
 
     def test_modified_cram_same_size_blocks_resume(self):
+        """Verify modified CRAM same size blocks resume."""
         self.finish(self.begin_cleanup(self.convert(self.start())))
         stat = self.cram.stat()
         os.utime(self.cram, ns=(stat.st_atime_ns, stat.st_mtime_ns + 1000000))
         self.check("unknown")
 
     def test_changed_reference_blocks_resume(self):
+        """Verify changed reference blocks resume."""
         self.convert(self.start())
-        self.reference.write_text("different reference")
+        self.reference.write_text("different reference", encoding="utf-8")
         self.check("unknown")
 
     def test_changed_manifest_entry_blocks_resume(self):
+        """Verify changed manifest entry blocks resume."""
         self.finish(self.begin_cleanup(self.convert(self.start())))
         self.entry["aligner"] = "another-aligner"
         self.check("unknown")
 
     def test_record_from_another_run_is_not_reused(self):
+        """Verify record from another run is not reused."""
         self.finish(self.begin_cleanup(self.convert(self.start())))
         path = records.record_path(self.manifest, self.entry)
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding="utf-8"))
         data["manifest_identity"]["run_id"] = "different-run"
-        path.write_text(json.dumps(data))
+        path.write_text(json.dumps(data), encoding="utf-8")
         self.check("unknown")
 
     def test_completed_alignment_deletion_needs_no_cram(self):
+        """Verify completed alignment deletion needs no CRAM."""
         self.entry["stage"] = "align-DNA"
         record = self.finish(self.begin_cleanup(self.start(action="delete_alignment")))
         self.assertEqual(records.recovery_action(self.manifest, self.entry, record), "complete")
@@ -179,6 +213,7 @@ class FinalizationRecordsTest(unittest.TestCase):
         self.check("success")
 
     def test_retaining_recalibrated_bam_does_not_authorize_its_removal(self):
+        """Verify retaining recalibrated BAM does not authorize its removal."""
         record = self.begin_cleanup(self.convert(self.start(delete_source=False)))
         self.assertEqual(record["state"], "complete")
         self.check("success")
@@ -186,26 +221,30 @@ class FinalizationRecordsTest(unittest.TestCase):
         self.check("unknown")
 
     def test_deleted_source_reappearing_blocks_resume(self):
+        """Verify deleted source reappearing blocks resume."""
         self.finish(self.begin_cleanup(self.convert(self.start())))
-        self.bam.write_text("fixture")
+        self.bam.write_text("fixture", encoding="utf-8")
         self.check("unknown")
 
     def test_corrupt_record_blocks_resume_even_with_original_bam(self):
+        """Verify corrupt record blocks resume even with original BAM."""
         self.start()
         path = records.record_path(self.manifest, self.entry)
         for value in ("partial json", "null", '[]'):
             with self.subTest(value=value):
-                path.write_text(value)
+                path.write_text(value, encoding="utf-8")
                 self.check("unknown")
 
     def test_partial_temporary_record_never_authorizes_missing_bam(self):
+        """Verify partial temporary record never authorizes missing BAM."""
         path = records.record_path(self.manifest, self.entry)
         path.parent.mkdir(parents=True)
-        path.with_suffix(".json.tmp").write_text('{"state":"complete"')
+        path.with_suffix(".json.tmp").write_text('{"state":"complete"', encoding="utf-8")
         self.bam.unlink()
         self.check("unknown")
 
     def test_atomic_write_failure_preserves_previous_record(self):
+        """Verify atomic write failure preserves previous record."""
         record = self.start()
         path = records.record_path(self.manifest, self.entry)
         before = path.read_bytes()
@@ -216,10 +255,12 @@ class FinalizationRecordsTest(unittest.TestCase):
         self.assertEqual(list(path.parent.glob(".record-*")), [])
 
     def test_cleanup_cannot_precede_conversion_validation(self):
+        """Verify cleanup cannot precede conversion validation."""
         with self.assertRaises(records.RecordError):
             records.begin_cleanup(self.manifest, self.entry, self.start())
 
     def test_cleanup_intent_must_be_saved_before_unlink(self):
+        """Verify cleanup intent must be saved before unlink."""
         record = self.convert(self.start())
         intent = records.begin_cleanup(self.manifest, self.entry, record)
         self.bam.unlink()
@@ -228,27 +269,33 @@ class FinalizationRecordsTest(unittest.TestCase):
         self.check("unknown")
 
     def test_invalid_validation_cannot_authorize_deletion(self):
+        """Verify invalid validation cannot authorize deletion."""
         record = self.convert(self.start())
-        for key, value in [("method", "unknown"), ("bam_flagstat", ""), ("cram_flagstat", "9 + 0 in total\n")]:
+        for key, value in [("method", "unknown"), ("bam_flagstat", ""),
+            ("cram_flagstat", "9 + 0 in total\n")]:
             invalid = deepcopy(record)
             invalid["conversion"]["validation"][key] = value
             with self.subTest(key=key), self.assertRaises(records.RecordError):
                 records.recovery_action(self.manifest, self.entry, invalid)
 
     def test_stale_state_update_is_rejected(self):
+        """Verify stale state update is rejected."""
         pending = self.start()
         self.convert(pending)
         with self.assertRaisesRegex(records.RecordError, "reverses recorded progress"):
             records.save_record(self.manifest, self.entry, pending)
 
     def test_record_location_is_persistent_and_scoped_to_invocation(self):
+        """Verify record location is persistent and scoped to invocation."""
         path = records.record_path(self.manifest, self.entry)
-        self.assertEqual(path.parent, self.root / "results/intermediate/output-manifests/P/aa_child/finalization")
+        self.assertEqual(path.parent,
+            self.root / "results/intermediate/output-manifests/P/aa_child/finalization")
         self.assertNotIn(str(self.work), str(path))
         other = dict(self.manifest, run_id="bb_other")
         self.assertNotEqual(path, records.record_path(other, self.entry))
 
     def test_resume_reads_only_json_and_filesystem_metadata(self):
+        """Verify resume reads only JSON and filesystem metadata."""
         self.finish(self.begin_cleanup(self.convert(self.start())))
         original_open = Path.open
 
@@ -268,17 +315,20 @@ class FinalizationRecordsTest(unittest.TestCase):
             os.chdir(previous)
 
     def worker_conversion_outputs(self, matching=True):
-        self.cram.write_text("CRAM fixture")
-        self.crai.write_text("index fixture")
-        self.cram_sha512.write_text("CRAM checksum fixture")
-        self.crai_sha512.write_text("CRAI checksum fixture")
-        (self.work / "samtools.version").write_text("samtools 1.23\n")
-        (self.work / "bam.flagstat").write_text("10 + 0 in total\n")
-        (self.work / "cram.flagstat").write_text("10 + 0 in total\n" if matching else "9 + 0 in total\n")
+        self.cram.write_text("CRAM fixture", encoding="utf-8")
+        self.crai.write_text("index fixture", encoding="utf-8")
+        self.cram_sha512.write_text("CRAM checksum fixture", encoding="utf-8")
+        self.crai_sha512.write_text("CRAI checksum fixture", encoding="utf-8")
+        (self.work / "samtools.version").write_text("samtools 1.23\n", encoding="utf-8")
+        (self.work / "bam.flagstat").write_text("10 + 0 in total\n", encoding="utf-8")
+        (self.work / "cram.flagstat").write_text(
+            "10 + 0 in total\n" if matching else "9 + 0 in total\n", encoding="utf-8")
 
     def test_worker_hooks_complete_and_restore_reports_without_source(self):
+        """Verify worker hooks complete and restore reports without source."""
         self.worker_step("prepare")
-        self.assertEqual((self.work / "finalization.action").read_text().strip(), "convert")
+        self.assertEqual(
+            (self.work / "finalization.action").read_text(encoding="utf-8").strip(), "convert")
         self.worker_conversion_outputs()
         self.worker_step("authorize")
         self.assertEqual(records.load_record(self.manifest, self.entry)["state"], "cleanup_pending")
@@ -288,17 +338,21 @@ class FinalizationRecordsTest(unittest.TestCase):
         (self.work / "bam.flagstat").unlink()
         (self.work / "cram.flagstat").unlink()
         self.worker_step("prepare")
-        self.assertEqual((self.work / "finalization.action").read_text().strip(), "complete")
-        self.assertEqual((self.work / "bam.flagstat").read_text(), "10 + 0 in total\n")
+        self.assertEqual(
+            (self.work / "finalization.action").read_text(encoding="utf-8").strip(), "complete")
+        self.assertEqual((self.work / "bam.flagstat").read_text(encoding="utf-8"),
+            "10 + 0 in total\n")
         self.check("success")
 
     def test_worker_hooks_resume_partial_cleanup(self):
+        """Verify worker hooks resume partial cleanup."""
         self.worker_step("prepare")
         self.worker_conversion_outputs()
         self.worker_step("authorize")
         self.bam.unlink()
         self.worker_step("prepare")
-        self.assertEqual((self.work / "finalization.action").read_text().strip(), "cleanup")
+        self.assertEqual(
+            (self.work / "finalization.action").read_text(encoding="utf-8").strip(), "cleanup")
         self.worker_step("authorize")
         for name in self.entry["published_file_sizes"]:
             path = Path(name)
@@ -308,6 +362,7 @@ class FinalizationRecordsTest(unittest.TestCase):
         self.check("success")
 
     def test_worker_hooks_reject_mismatching_flagstats(self):
+        """Verify worker hooks reject mismatching flagstats."""
         self.worker_step("prepare")
         self.worker_conversion_outputs(matching=False)
         with self.assertRaisesRegex(records.RecordError, "flagstats comparison"):
@@ -316,6 +371,7 @@ class FinalizationRecordsTest(unittest.TestCase):
         self.assertTrue(self.bam.exists())
 
     def test_worker_hooks_record_retention_without_deletion_permission(self):
+        """Verify worker hooks record retention without deletion permission."""
         self.worker_step("prepare", delete_source=False)
         self.worker_conversion_outputs()
         self.worker_step("authorize", delete_source=False)
@@ -326,20 +382,25 @@ class FinalizationRecordsTest(unittest.TestCase):
         self.check("unknown")
 
     def test_alignment_hooks_resume_partial_deletion(self):
+        """Verify alignment hooks resume partial deletion."""
         self.entry['stage'] = 'align-DNA'
         previous = Path.cwd()
         try:
             os.chdir(self.work)
             for step in ('prepare', 'authorize'):
-                records.worker_record_step(self.manifest, self.entry, step, True, 'delete_alignment')
-            self.assertEqual(records.load_record(self.manifest, self.entry)['state'], 'cleanup_pending')
+                records.worker_record_step(self.manifest, self.entry, step, True,
+                    'delete_alignment')
+            self.assertEqual(records.load_record(self.manifest, self.entry)['state'],
+                'cleanup_pending')
             self.bam.unlink()
             self.check('success')
             for step in ('prepare', 'authorize'):
-                records.worker_record_step(self.manifest, self.entry, step, True, 'delete_alignment')
+                records.worker_record_step(self.manifest, self.entry, step, True,
+                    'delete_alignment')
             for name in self.entry['published_indexes'] + self.entry['published_checksums']:
                 Path(name).unlink()
-            records.worker_record_step(self.manifest, self.entry, 'complete', True, 'delete_alignment')
+            records.worker_record_step(self.manifest, self.entry, 'complete', True,
+                'delete_alignment')
             self.assertEqual(records.load_record(self.manifest, self.entry)['state'], 'complete')
             self.assertFalse(self.cram.exists())
             self.check('success')
@@ -347,8 +408,10 @@ class FinalizationRecordsTest(unittest.TestCase):
             os.chdir(previous)
 
     def test_alignment_action_rejects_recalibrated_entry(self):
+        """Verify alignment action rejects recalibrated entry."""
         with self.assertRaisesRegex(records.RecordError, 'Invalid finalization action'):
-            records.worker_record_step(self.manifest, self.entry, 'prepare', True, 'delete_alignment')
+            records.worker_record_step(self.manifest, self.entry, 'prepare', True,
+                'delete_alignment')
         self.assertTrue(self.bam.exists())
 
 

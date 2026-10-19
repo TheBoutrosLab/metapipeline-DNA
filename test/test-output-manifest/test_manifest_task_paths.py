@@ -1,24 +1,34 @@
-"""Exercise wrapper output declarations using tiny stand-in scripts, without running child pipelines.
+"""Exercise wrapper output declarations using tiny stand-in scripts.
 
 Usage: python3 test_manifest_task_paths.py [nextflow launcher command ...]
 """
 from pathlib import Path
-import subprocess, sys, tempfile
+import subprocess
+import sys
+import tempfile
 
 
 def main():
-    repo=Path(__file__).resolve().parents[2]
+    """Verify task context paths using small stand-in child outputs."""
+    repo = Path(__file__).resolve().parents[2]
     with tempfile.TemporaryDirectory(prefix='manifest-context-') as temp:
-        root=Path(temp)
-        definitions=[]
-        for name,outputs in [('align_DNA/call_align_DNA', 'mkdir -p align-DNA-1/S'), ('recalibrate_BAM/run_recalibrate_BAM', 'mkdir -p recalibrate-BAM-1/S/GATK-1/output recalibrate-BAM-1/S/GATK-1/QC/contamination_qc/run_CalculateContamination_GATK recalibrate-BAM-1/S/log-recalibrate-BAM-1/nextflow-log\necho {} > recalibrate-BAM-1/S/log-recalibrate-BAM-1/nextflow-log/params.json')]:
-            source=(repo/('module/'+name+'.nf')).read_text()
-            source=source[source.index('process '):]
-            start=source.index('    """')
-            source=source[:start]+'    """\n'+outputs+'\n    """\n}\n'
+        root = Path(temp)
+        definitions = []
+        for name, outputs in [
+            ('align_DNA/call_align_DNA', 'mkdir -p align-DNA-1/S'),
+            ('recalibrate_BAM/run_recalibrate_BAM',
+             'mkdir -p recalibrate-BAM-1/S/GATK-1/output '
+             'recalibrate-BAM-1/S/GATK-1/QC/contamination_qc/run_CalculateContamination_GATK '
+             'recalibrate-BAM-1/S/log-recalibrate-BAM-1/nextflow-log\n'
+             'echo {} > recalibrate-BAM-1/S/log-recalibrate-BAM-1/nextflow-log/params.json')
+        ]:
+            source = (repo / ('module/' + name + '.nf')).read_text(encoding="utf-8")
+            source = source[source.index('process '):]
+            start = source.index('    """')
+            source = source[:start]+'    """\n'+outputs+'\n    """\n}\n'
             definitions.append(source)
-        (root/'input.yaml').write_text('{}')
-        script=root/'test.nf'
+        (root / 'input.yaml').write_text('{}', encoding="utf-8")
+        script = root / 'test.nf'
         script.write_text('''nextflow.enable.dsl = 2
     params.align_DNA = [subworkflow_cpus:1, metapipeline_arg_map:[:]]
     params.recalibrate_BAM = [subworkflow_cpus:1, metapipeline_arg_map:[:]]
@@ -45,10 +55,12 @@ def main():
             "Recalibration context uses ${context.task_work_dir}"
         }
     }
-    ''')
-        command=(sys.argv[1:] or ['nextflow']) + ['-C',str(repo/'test/test-output-manifest/nextflow.config'),'run',str(script),'-ansi-log','false']
-        p=subprocess.run(command,cwd=root)
-        raise SystemExit(p.returncode)
+    ''', encoding="utf-8")
+        command = (sys.argv[1:] or ['nextflow']) + ['-C',
+            str(repo / 'test/test-output-manifest/nextflow.config'),'run',str(script),'-ansi-log',
+            'false']
+        result = subprocess.run(command, cwd=root, check=False)
+        raise SystemExit(result.returncode)
 
 
 if __name__ == "__main__":
