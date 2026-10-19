@@ -100,6 +100,8 @@ class FinalizationFixture(unittest.TestCase):
         return result
 
 
+# Each public test covers a distinct finalization or recovery scenario.
+# pylint: disable-next=too-many-public-methods
 class FinalizationRecordsTest(FinalizationFixture):
     """Verify persistent records and recovery after interrupted finalization."""
 
@@ -307,6 +309,7 @@ class FinalizationRecordsTest(FinalizationFixture):
             checker.verify_manifest(self.manifest, dict(self.identity, exit_code=0), "P")
 
     def worker_step(self, step, delete_source=True):
+        """Run a worker record step in the fixture's task directory."""
         previous = Path.cwd()
         try:
             os.chdir(self.work)
@@ -315,6 +318,7 @@ class FinalizationRecordsTest(FinalizationFixture):
             os.chdir(previous)
 
     def worker_conversion_outputs(self, matching=True):
+        """Create conversion outputs with matching or mismatched flagstat reports."""
         self.cram.write_text("CRAM fixture", encoding="utf-8")
         self.crai.write_text("index fixture", encoding="utf-8")
         self.cram_sha512.write_text("CRAM checksum fixture", encoding="utf-8")
