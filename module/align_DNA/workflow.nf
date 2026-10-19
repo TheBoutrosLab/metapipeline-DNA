@@ -21,6 +21,7 @@ workflow align_DNA {
         modification_signal
     main:
         def this_pipeline = 'align-DNA'
+        manifest_entries = Channel.empty()
         if (params.override_realignment) {
             modification_signal.until{ it == 'done' }.ifEmpty('done')
                 .map{ it ->
@@ -75,6 +76,7 @@ workflow align_DNA {
 
             // Identify outputs
             identify_align_dna_outputs(call_align_DNA.out.align_dna_output_directory)
+            manifest_entries = identify_align_dna_outputs.out.manifest_entries
 
             identify_align_dna_outputs.out.och_align_dna_outputs_identified
                 .collect()
@@ -85,5 +87,6 @@ workflow align_DNA {
                 .set{ alignment_sample_data_updated }
         }
     emit:
+        manifest_entries = manifest_entries
         alignment_sample_data_updated = alignment_sample_data_updated
 }

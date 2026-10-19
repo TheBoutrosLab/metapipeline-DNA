@@ -28,6 +28,7 @@ workflow recalibrate_BAM {
 
     main:
         def this_pipeline = 'recalibrate-BAM'
+        manifest_entries = Channel.empty()
 
         if (!['VCF', 'SRC'].contains(params.input_type)) {
             // Extract inputs from data structure
@@ -146,8 +147,10 @@ workflow recalibrate_BAM {
                     return 'done'
                 }
                 .set{ recalibrate_sample_data_updated }
+            manifest_entries = identify_recalibrate_bam_outputs.out.manifest_entries
         }
 
     emit:
+        manifest_entries = manifest_entries
         recalibrate_sample_data_updated = recalibrate_sample_data_updated
 }

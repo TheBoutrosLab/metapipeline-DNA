@@ -271,6 +271,21 @@ class EmailingServer(HTTPServer):
         return message
 
 
+def write_completion_report(destination, args, exit_code):
+    """Record the child result only after Nextflow (including publication) exits."""
+    destination = Path(destination)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary = destination.with_name(destination.name + ".tmp")
+    temporary.write_text(json.dumps({
+        "schema_version": 1,
+        "run_id": args.task_hash,
+        "workflow_identifier": args.workflow_identifier,
+        "patient": args.patient,
+        "exit_code": exit_code,
+    }) + "\n")
+    temporary.replace(destination)
+
+
 def run():
     "Run the Nextflow pipeline with additional logging."
     # Parse the --metapipeline_log_output_dir argument
@@ -284,7 +299,15 @@ def run():
     # These two (plus --patient) are used to send pipeline update emails
     parser.add_argument("--project_id", required=True)
     parser.add_argument("--status_email_address", required=True)
+    parser.add_argument("--workflow_identifier")
+    parser.add_argument("--completion_report")
     args, _ = parser.parse_known_args()
+
+    # A restarted child must not leave an earlier success receipt available.
+    if args.completion_report:
+        receipt = Path(args.completion_report)
+        if receipt.exists():
+            receipt.unlink()
 
     # Write logs into the patient-specific subdirectory of nextflow-log
     log_output_dir = Path(
@@ -367,6 +390,8 @@ def run():
 
         # Wait for and return Nextflow's exit code.
         nextflow_process.wait()
+        if args.completion_report:
+            write_completion_report(args.completion_report, args, nextflow_process.returncode)
         return nextflow_process.returncode
 
 
