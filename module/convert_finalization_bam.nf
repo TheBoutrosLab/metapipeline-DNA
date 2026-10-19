@@ -28,9 +28,8 @@ process convert_finalization_bam {
     cache false // Persistent records, rather than cached task outputs, decide what remains.
     errorStrategy 'ignore'
 
-    // These hooks run on the Slurm host, within this task. The samtools image
-    // has no Python, so host Python 3 is required. Finalization runs for the
-    // same entry are assumed not to overlap.
+    // These hooks run on the Slurm host, within this task.
+    // Finalization runs for the same entry are assumed not to overlap.
     beforeScript {
         def helper = "${moduleDir}/../templates/finalization_records.py"
         """
