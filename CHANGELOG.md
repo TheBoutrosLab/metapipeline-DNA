@@ -8,6 +8,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+
+- Add finalization workflow with options to remove align-DNA BAMs post-completion and CRAM recalibrate-BAM BAMs
+
 ## [10.7.0] - 2026-10-19
 
 ### Added
