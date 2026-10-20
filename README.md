@@ -19,6 +19,10 @@
     - [10. call-sSV](#10-call-ssv)
     - [11. call-sCNA](#11-call-scna)
     - [12. call-SRC](#12-call-src)
+    - [13. StableLift](#13-stablelift)
+    - [14. annotate-VCF](#14-annotate-vcf)
+    - [15. call-GeneticAncestry](#15-call-geneticancestry)
+    - [16. calculate-mtDNA-CopyNumber](#16-calculate-mtdna-copynumber)
   - [Configuration](#configuration)
     - [Output finalization](#output-finalization)
     - [WGS global job submission params - UCLAHS-CDS](#uclahs-cds-wgs-global-sample-job-submission-parameters)
@@ -29,6 +33,7 @@
       - [Single](#single-sample-mode)
       - [Paired](#paired-sample-mode)
       - [Multi](#multi-sample-mode)
+      - [Additional sSNV calling](#additional-ssnv-calling)
   - [Inputs](#inputs)
     - [Input BAM](#input-bam)
     - [Input FASTQ](#input-fastq)
@@ -45,7 +50,7 @@
 
 ## Overview
 
-Metapipeline-DNA is a DNA sequencing processing pipeline that accepts sequencing data as input. The data may be in FASTQ format or in aligned format (BAM/CRAM - <u>**BETA FEATURE**</u>), with options for re-alignment with back-conversion to FASTQ format. The FASTQs are aligned to the reference genome and recalibrated with insertion-deletion (INDEL) realignment and base quality score recalibration, followed by quality control steps including targeted coverage calculation and whole genome sequencing (WGS) metrics. Various calling steps are performed to identify germline single-nucleotide polymorphisms (SNPs), somatic single-nucleotide variants (SNVs), mitochondrial SNVs, germline structural variants (SVs), somatic SVs, and somatic copy-number aberrations (CNAs). The processing culminates with subclonal reconstruction (SRC).
+Metapipeline-DNA is a DNA sequencing processing pipeline that accepts sequencing data as input. The data may be in FASTQ format or in aligned format (BAM/CRAM - <u>**BETA FEATURE**</u>), with options for re-alignment with back-conversion to FASTQ format. The FASTQs are aligned to the reference genome and recalibrated with insertion-deletion (INDEL) realignment and base quality score recalibration, followed by quality control steps including targeted coverage calculation and whole genome sequencing (WGS) metrics. Various calling steps are performed to identify germline single-nucleotide polymorphisms (SNPs), somatic single-nucleotide variants (SNVs), mitochondrial SNVs, germline structural variants (SVs), somatic SVs, and somatic copy-number aberrations (CNAs). The processing culminates with subclonal reconstruction (SRC). Additional downstream steps include liftover of variant calls between GRCh37 and GRCh38 with StableLift, variant annotation, genetic ancestry inference, and mitochondrial DNA copy number estimation.
 
 ---
 
@@ -62,13 +67,17 @@ Metapipeline-DNA is a DNA sequencing processing pipeline that accepts sequencing
 nextflow run \
     /path/to/metapipeline-dna/main.nf \
     -c /path/to/generated/config \
+    -profile <docker|apptainer|singularity> \
     -params-file /path/to/generated/input.yaml
 
 # CSV input
 nextflow run \
     /path/to/metapipeline-dna/main.nf \
-    -c /path/to/generated/config
+    -c /path/to/generated/config \
+    -profile <docker|apptainer|singularity>
 ```
+
+The `-profile` option selects the containerization system, which is also used by every child pipeline. Options: `docker`, `apptainer`, `singularity`. Without `-profile`, the `standard` profile is used, which is equivalent to `docker`.
 
 **Note**: UCLAHS-CDS users, submit the pipeline using the [submission script](https://github.com/theboutroslab/tool-submit-nf).
 
@@ -91,7 +100,7 @@ Each worker node performs the following steps:
 ## Pipeline Steps
 
 ### 1. convert-BAM2FASTQ
-*Optional*: Only run when BAM or CRAM are provided as input and realignment is not overriden.
+*Optional*: Only run when BAM or CRAM are provided as input and realignment is not overridden.
 
 Aligned data is back-converted to FASTQ using [pipeline-convert-BAM2FASTQ](https://theboutroslab.github.io/pipeline-convert-BAM2FASTQ/).
 
@@ -139,6 +148,24 @@ Somatic CNAs are called using [pipeline-call-sCNA](https://theboutroslab.github.
 
 Subclonal reconstruction is performed using [pipeline-call-SRC](https://theboutroslab.github.io/pipeline-call-SRC/).
 
+### 13. StableLift
+*Optional*: Requested with `StableLiftsSNV` and/or `StableLiftgSNP`.
+
+Somatic SNVs and germline SNPs are lifted over between GRCh37 and GRCh38 and filtered on predicted cross-build stability using [pipeline-StableLift](https://theboutroslab.github.io/pipeline-StableLift/).
+
+### 14. annotate-VCF
+*Optional*: Requested with `annotate-gSNP` and/or `annotate-sSNV`.
+
+Germline SNPs and somatic SNVs are annotated with SnpEff/SnpSift, GATK Funcotator, and VEP using [pipeline-annotate-VCF](https://theboutroslab.github.io/pipeline-annotate-VCF/).
+
+### 15. call-GeneticAncestry
+
+Genetic ancestry is inferred from the germline SNP calls using [pipeline-call-GeneticAncestry](https://theboutroslab.github.io/pipeline-call-GeneticAncestry/).
+
+### 16. calculate-mtDNA-CopyNumber
+
+Mitochondrial DNA copy number is estimated from the contig-level coverage generated by generate-SQC-BAM using [pipeline-calculate-mtDNA-CopyNumber](https://theboutroslab.github.io/pipeline-calculate-mtDNA-CopyNumber/).
+
 ## Configuration
 
 The following parameters are available at the metapipeline level:
@@ -152,24 +179,34 @@ The following parameters are available at the metapipeline level:
 | `save_intermediate_files` | boolean | yes | Whether to save intermediate files. Default: `false` |
 | `partition` | string | yes | Partition type for submitting each processing jobs |
 | `clusterOptions` | string | yes | Additional `slurm` submission options |
-| `max_parallel_jobs` | integer | yes | Number of jobs to submit at once. Default:  5 |
-| `cluster_submission_interval` | integer | yes | Time in minutes to wait between job submissions, Default: 90 |
-| `sample_mode` | string | yes | Mode for sample calling. Options: `paired`, `single`, `multi`. Default: `paired` |
-| `requested_pipelines` | list | yes | List of pipelines requested. |
-| `use_original_intervals` | boolean | yes | Whether original intervals should be used with pipelines rather than expanded intervals generated by calculate-targeted-coverage |
+| `executor` | string | no | Executor used to submit each processing job when `uclahs_cds_wgs` is disabled. Default: `slurm` |
+| `max_parallel_jobs` | integer | yes | Number of jobs to submit at once. Not applied when `uclahs_cds_wgs` is enabled. Default: 5 |
+| `cluster_submission_interval` | integer | yes | Time in minutes to wait between job submissions. Default: 90 |
+| `sample_mode` | string | yes | Mode for sample calling. Options: `paired`, `single`, `multi`. No default; the template uses `paired` |
+| `requested_pipelines` | list | yes | List of pipelines requested. See [pipeline selection](#pipeline-selection) for options and the default. |
+| `use_original_intervals` | boolean | yes | Whether original intervals should be used with pipelines rather than expanded intervals generated by calculate-targeted-coverage. Default: `false` |
 | `pipeline_params` | namespace | yes | Namespace containing parameters for each individual pipeline. Parameters for the requested pipelines must be given. |
 | `override_realignment` | boolean | yes | Whether to override conversion to FASTQ and realignment when given BAM input. Default: `false` |
 | `override_recalibrate_bam` | boolean | yes | Whether to override recalibrate-BAM pipeline when given BAM input. Default: `false` |
 | `use_contamination_tables` | boolean | no | Whether to pass available contamination tables to call-sSNV. Default: `true` |
-| `primary_aligner` | string | no | Aligner whose BAM is passed to downstream pipelines. Must be one of the configured align-DNA aligners. Defaults to `BWA-MEM2` when selected, otherwise the first configured aligner. |
-| `src_snv_tool` | string | yes | Which SNV tool's output to use for SRC. Default: `BCFtools-Intersect` |
-| `src_cna_tool` | string | yes | Which CNA tool's output to use for SRC. Default: `Battenberg` |
+| `primary_aligner` | string | no | Aligner whose BAM is passed to downstream pipelines. Options: `BWA-MEM2`, `BWA-MEM3`, `minibwa`, `HISAT2`. Must be one of the configured align-DNA aligners. Defaults to `BWA-MEM2` when selected, otherwise the first configured aligner. |
+| `ssnv_run_normal_only_mutect2` | boolean | yes | Whether to also run Mutect2 on each normal sample alone, regardless of `sample_mode`, for example to generate calls for a panel of normals. Default: `false` |
+| `ssnv_run_all_tumor_only` | boolean | yes | Whether to also run each tumor sample through Mutect2, and DeepSomatic if requested, in tumor-only mode in `paired` and `multi` modes. Default: `false` |
+| `src_snv_tool` | string | yes | Which SNV tool's output to use for SRC. Options: `BCFtools-Intersect`, `Mutect2`, `SomaticSniper`, `Strelka2`, `MuSE`. Default: `BCFtools-Intersect` |
+| `src_cna_tool` | string | yes | Which CNA tool's output to use for SRC. Options: `Battenberg`, `FACETS`. Default: `Battenberg` |
 | `override_src_precursor_disable` | boolean | yes | Whether to override the automatic disabling of either call-sSNV or call-sCNA when the respective outputs are provided in the input. Default: `false` |
 | `src_run_all_combinations` | boolean | yes | **TO-DO**: Whether to run SRC using all combinations of SNV tool and CNA tool. Default: `false` |
+| `stablelift_models` | map | yes | Paths to the StableLift models, keyed by liftover direction (`GRCh37ToGRCh38`, `GRCh38ToGRCh37`) and then by caller (`HaplotypeCaller`, `Muse2`, `Mutect2`, `SomaticSniper`, `Strelka2`, `Delly2-gSV`, `Delly2-sSV`). Only validated when StableLift is requested. Default: set in [default.config](config/default.config) |
 | `run_downstream_pipelines_serially` | boolean | no | Whether to run pipelines downstream of recalibrate-BAM sequentially. Note: if this option is used in conjunction with `downstream_pipeline_order`, any pipelines with a given ordering will be run sequentially regardless of the value of this parameter. Default: `false` |
-| `downstream_pipeline_order` | list | no | List indicating specific order in which to run pipelines downstream of recalibrate-BAM. Default: no order |
+| `downstream_pipeline_order` | list | no | List indicating specific order in which to run pipelines downstream of recalibrate-BAM. Options: `generate-SQC-BAM`, `call-gSNP`, `call-gSV`, `call-mtSNV`, `call-sSNV`, `call-sSV`, `call-sCNA`. Default: no order |
 | `input_csv` | path | no | Absolute path to input CSV when using CSV input |
 | `status_email_address` | string | no | Email address to notify when child pipelines start and complete. Default: `` |
+| `ucla_cds` | boolean | no | Whether to apply UCLAHS-CDS cluster checks: `leading_work_dir` must be under `/hot`, and a `pipeline_work_dir` of `/scratch` resolves to the job-specific `/scratch/$SLURM_JOB_ID`. Default: `true` |
+| `pipeline_cpus` | integer | no | CPUs available to each processing job. Used for resource allocation when CPUs and memory can't be inferred from an F- or M-series `partition` name. |
+| `pipeline_memory` | memory | no | Memory available to each processing job, for example `'64.G'`. Used together with `pipeline_cpus`. |
+| `resource_allocation_profile_tag` | string | no | Resource allocation profile tag passed to each pipeline, for example `'f32'`. Pipelines use the tag when available and fall back to `pipeline_cpus` and `pipeline_memory` otherwise. |
+| `apptainer_library` / `apptainer_cache` | path | no | Apptainer library and cache directories when using the `apptainer` profile |
+| `singularity_library` / `singularity_cache` | path | no | Singularity library and cache directories when using the `singularity` profile |
 
 
 ### Output finalization
@@ -199,19 +236,38 @@ The following parameters are intended to control the global number and rate of W
 | `uclahs_cds_wgs` | boolean | yes | Whether global job number and submission limits should be applied. Default: `true` |
 | `global_rate_limit` | integer | yes | Time in minutes between submission of any WGS jobs. Default: 90 |
 
+When `uclahs_cds_wgs` is enabled, jobs are submitted one at a time with `sbatch`, and `max_parallel_jobs` is not applied. The time between submissions is the larger of `cluster_submission_interval` and `global_rate_limit`.
+
 ### Pipeline selection
 
 Pipeline selection is controlled by the `requested_pipelines` parameter. Given the list of requested pipelines, metapipeline-DNA will automatically identify any necessary dependencies and enable them for the run.
+
+Options: `align-DNA`, `recalibrate-BAM`, `calculate-targeted-coverage`, `generate-SQC-BAM`, `call-gSNP`, `call-gSV`, `call-mtSNV`, `call-sSNV`, `call-sSV`, `call-sCNA`, `call-SRC`, `StableLiftsSNV`, `StableLiftgSNP`, `annotate-gSNP`, `annotate-sSNV`, `call-GeneticAncestry`, `calculate-mtDNA-CopyNumber`.
+
+Default: all of the above except `calculate-targeted-coverage`, `StableLiftsSNV`, `StableLiftgSNP`, and `annotate-sSNV`.
+
+Requesting a pipeline also enables the pipelines it depends on:
+
+| Pipeline | Requires |
+| :---: | :---: |
+| `align-DNA` | `convert-BAM2FASTQ` (BAM/CRAM input only) |
+| `recalibrate-BAM`, `calculate-targeted-coverage` | `align-DNA` |
+| `generate-SQC-BAM`, `call-gSNP`, `call-sSNV`, `call-mtSNV`, `call-gSV`, `call-sSV`, `call-sCNA` | `recalibrate-BAM` |
+| `call-SRC` | `call-sSNV`, `call-sCNA` |
+| `StableLiftsSNV`, `annotate-sSNV` | `call-sSNV` |
+| `StableLiftgSNP`, `annotate-gSNP`, `call-GeneticAncestry` | `call-gSNP` |
+| `calculate-mtDNA-CopyNumber` | `generate-SQC-BAM` |
 
 Pipeline selection follows some default behaviors:
 
 - When given BAM input, the default pipeline selector will perform conversion to FASTQ, re-align the FASTQs, and perform recalibration. This default behavior can be disabled with the `override_realignment` and `override_recalibrate_bam` parameters. With `override_realignment`, the back-conversion to FASTQ and re-alignment will be disabled. With `override_recalibrate_bam`, recalibration of the BAM using recalibrate-BAM will be disabled.
 - When multiple aligners are configured, `primary_aligner` selects which aligned BAM is passed downstream. When align-DNA runs, the corresponding `<aligner>-<version>` value is automatically passed to recalibrate-BAM for output provenance. When realignment is skipped, `pipeline_params.recalibrate_BAM.aligner` must describe the original BAM using that format, for example `minibwa-0.4`.
 - When SNV or CNA calls are given as inputs, metapipeline-DNA will automatically disable the call-sSNV and call-sCNA pipelines, respectively, and use the given inputs for call-SRC. This behavior can be controlled by `override_src_precursor_disable` to let metapipeline-DNA run the call-sSNV and call-sCNA pipelines to generate inputs for call-SRC using the BAM or FASTQ inputs. **Note**: This option only has an effect in the case of mixed inputs being provided as the call-sSNV and call-sCNA pipelines require sequencing data as inputs.
+- When `use_contamination_tables` is enabled, the contamination tables generated by recalibrate-BAM are passed to call-sSNV. If recalibrate-BAM is skipped, the tables given with the BAM/CRAM input are used instead. Tumor-normal calling uses the tumor's matched-normal table, falling back to its sample-alone table; tumor-only calling uses the sample-alone table.
 
 ### Pipeline-specific params
 
-Each pipeline has a set of parameters that must be provided. The available parameters for each pipeline are documented in the links in the [steps](#pipeline-steps). Additionally, the default [template.config](./input/template.config) contains the default set of parameters that need to be defined for each pipeline. Any additional supported parameters can be added as needed. The following keys are used as the pipeline names in this namespace:
+Each pipeline has a set of parameters that must be provided. The available parameters for each pipeline are documented in the links in the [steps](#pipeline-steps). Additionally, the default [template.config](config/template.config) contains the default set of parameters that need to be defined for each pipeline. Any additional supported parameters can be added as needed. The following keys are used as the pipeline names in this namespace:
 
 | Pipeline | Key |
 | :---: | :---: |
@@ -227,6 +283,10 @@ Each pipeline has a set of parameters that must be provided. The available param
 | `call-sSV` | `call_sSV` |
 | `call-sCNA` | `call_sCNA` |
 | `call-SRC` | `call_SRC` |
+| `StableLift` | `StableLift` |
+| `annotate-VCF` | `annotate_VCF` |
+| `call-GeneticAncestry` | `call_GeneticAncestry` |
+| `calculate-mtDNA-CopyNumber` | `calculate_mtDNA_CopyNumber` |
 
 Each pipeline also defines a set of resources per process to run. These resources can be modified if necessary on a per-process per-pipeline basis by using the `base_resource_update` functionality for the specific pipeline (this functionality is defined in each pipeline's README). For example, to double the base memory of all processes in the call-sSNV pipeline:
 
@@ -258,6 +318,10 @@ For targeted or exome sequencing, target intervals can be provided in BED format
 | `call-gSNP` | `intervals` |
 | `recalibrate-BAM` | `intervals` |
 | `calculate-targeted-coverage` | `target_bed` |
+| `generate-SQC-BAM` | `intervals_bed` |
+| `call-sCNA` | `target_bed` |
+
+When calculate-targeted-coverage runs, the expanded intervals it generates replace the intervals given to call-sSNV, call-gSNP, and recalibrate-BAM, unless `use_original_intervals` is enabled.
 
 For the respective pipeline params, provide the full path to the intervals file in the generated config to make use of the targets. For example:
 
@@ -284,8 +348,8 @@ Given the set of input patients and samples, grouping of samples is controlled b
 
 #### Single sample mode
 All samples are processed individually, regardless of patient, as separate jobs.
-- Normal samples will go through germline calling (`call-gSNP`, `call-gSV`) and somatic SNV calling with `Mutect2`'s normal-only mode.
-- Tumor samples will go through germline calling (`call-gSNP`) and somatic SNV calling with `Mutect2`'s tumor-only mode.
+- Normal samples will go through germline calling (`call-gSNP`, `call-gSV`). Somatic SNV calling with `Mutect2`'s normal-only mode only runs when `ssnv_run_normal_only_mutect2` is enabled.
+- Tumor samples will go through germline calling (`call-gSNP`) and tumor-only somatic SNV calling with `Mutect2` and/or `DeepSomatic`, if requested.
 
 #### Paired sample mode
 All samples from the same patient are submitted as a single job, with each normal-tumor pair processed separately in the same job.
@@ -299,9 +363,16 @@ All samples from the same patient are processed as a single job.
 - The recalibration and germline SNP calling will then proceed on the entire set of samples together.
 - Somatic SNV calling will proceed in two ways:
     1. The normal sample will be paired with each tumor sample and run through the `call-sSNV` pipeline
-    2. If `Mutect2` was requested, the entire set of samples will go through multi-sample calling with just `Mutect2` in `call-sSNV`.
+    2. If `Mutect2` was requested, the entire set of samples will go through multi-sample calling with just `Mutect2` in `call-sSNV`. If `Mutect2` is the only requested tool, it runs only in multi-sample mode.
 - The normal sample will be paired with each tumor sample and each pair will go through `call-mtSNV`, `call-sSV`, and `call-sCNA`.
 - The normal sample will go through `call-gSV`.
+
+#### Additional sSNV calling
+Two options add extra `call-sSNV` runs on top of the calling described for each mode:
+- `ssnv_run_normal_only_mutect2`: Each normal sample is also run through `Mutect2` alone, regardless of `sample_mode`, for example to generate calls for a panel of normals.
+- `ssnv_run_all_tumor_only`: In `paired` and `multi` modes, each tumor sample is also run through `Mutect2`, and `DeepSomatic` if requested, in tumor-only mode.
+
+Calls from the extra tumor-only runs are saved with the call-sSNV outputs but aren't passed to downstream pipelines such as call-SRC, StableLift, or annotate-VCF.
 
 ---
 
@@ -326,14 +397,19 @@ input:
 ...
 ```
 
+Every input type requires the genetic sex of each patient (`XX`, `XY`, or `unknown`). With CSV input, give it on every row in the `genetic_sex` column; all rows for a patient must match. With YAML input, set `genetic_sex` once under each patient key. Battenberg in call-sCNA requires `XX` or `XY` for all patients.
+
 ### Input BAM
 
 | Field | Type | Required | Description |
 | :---: | :--: | :------: | :---------: |
 | patient | string | yes | Identifier for the patient |
+| genetic_sex | string | yes | Genetic sex of the patient. Must be "XX", "XY", or "unknown" |
 | sample | string | yes | Identifier for the sample |
 | state | string | yes | Must be either "tumor" or "normal" |
 | path | path | yes | Absolute path to the sample BAM or CRAM file |
+| sample_alone_contamination | path | no | Absolute path to a sample-alone contamination table, passed to call-sSNV when `use_contamination_tables` is enabled |
+| matched_normal_contamination | path | no | Absolute path to a matched-normal contamination table, passed to call-sSNV when `use_contamination_tables` is enabled. Tumor samples only; ignored for normal samples |
 
 See this [template](input/template-input-BAM.csv) for CSV format and this [template](input/template-input-BAM.yaml) for YAML format.
 
@@ -344,6 +420,7 @@ For CSV input, the alignment type is inferred from the `.bam` or `.cram` file ex
 | Field | Type | Required | Description |
 | :---: | :--: | :------: | :---------: |
 | patient | string | yes | Identifier for the patient |
+| genetic_sex | string | yes | Genetic sex of the patient. Must be "XX", "XY", or "unknown" |
 | sample | string | yes | Identifier for the sample |
 | state | string | yes | Must be either "tumor" or "normal" |
 | read_group_identifier | string | yes | Read group ID |
@@ -351,7 +428,7 @@ For CSV input, the alignment type is inferred from the `.bam` or `.cram` file ex
 | library_identifier | string | yes | Library used for sample |
 | platform_technology | string | yes | Technology used for sequencing |
 | platform_unit | string | yes | Name of specific platform unit |
-| bam_header_sm | string | yes | Sample name tag for BAM |
+| bam_header_sm | string | yes | Sample name tag for BAM. Must match `sample` |
 | lane | string | yes | Lane identifier for sample |
 | read1_fastq | path | yes | Absolute path to R1 FASTQ |
 | read2_fastq | path | yes | Absolute path to R2 FASTQ |
@@ -365,13 +442,14 @@ For SRC input, only `call-SRC` can be run. In this case, for each tumor sample, 
 | Field | Type | Required | Description |
 | :---: | :--: | :------: | :---------: |
 | patient | string | yes | Identifier for the patient |
+| genetic_sex | string | yes | Genetic sex of the patient. Must be "XX", "XY", or "unknown" |
 | sample | string | yes | Identifier for the sample |
 | state | string | yes | Must be either "tumor" or "normal" |
 | src_input_type | string | yes | The type of input, must be either "CNA" or "SNV" |
-| src_input_algorithm | string | yes | Algorithm used to generate the input |
+| src_input_algorithm | string | yes | Algorithm used to generate the input. SNV options: `BCFtools-Intersect`, `Mutect2`, `SomaticSniper`, `Strelka2`, `MuSE`. CNA options: `Battenberg`, `FACETS` |
 | src_path | string | yes | Full path to the file |
 
-See this [template](input/template-input-SRC.csv) for CSV format and this [template](input/template-input-SRC.yaml) for YAML format.
+See this [template](input/template-input-SRC.csv) for CSV format and this [template](input/template-input-SRC.yaml) for YAML format. In YAML input, each entry under `SRC` uses the keys `src_input_type`, `algorithm`, and `path`.
 
 ### Mixed input
 
@@ -379,21 +457,44 @@ A mix of SRC and sequencing inputs can also be provided, in cases where for exam
 
 #### CNA calls available
 
-If CNA calls are already available, provide the CNA calls as SRC input and provide the sequencing data (either FASTQ or BAM/CRAM) as FASTQ or BAM/CRAM input. With CSV input, keep all columns and leave fields black per row as needed. See [template CSV](./input/template-input-mix-SRC-CNA.csv) for the CSV format and [template YAML](./input/template-input-mix-SRC-CNA.yaml) for the YAML format.
+If CNA calls are already available, provide the CNA calls as SRC input and provide the sequencing data (either FASTQ or BAM/CRAM) as FASTQ or BAM/CRAM input. With CSV input, keep all columns and leave fields blank per row as needed. See [template CSV](./input/template-input-mix-SRC-CNA.csv) for the CSV format and [template YAML](./input/template-input-mix-SRC-CNA.yaml) for the YAML format.
 
 #### SNV calls available
 
-If SNV calls are already available, provide the SNV calls as SRC input and provide the sequencing data (either FASTQ or BAM/CRAM) as FASTQ or BAM/CRAM input. With CSV input, keep all columns and leave fields black per row as needed. See [template CSV](./input/template-input-mix-SRC-SNV.csv) for the CSV format and [template YAML](./input/template-input-mix-SRC-SNV.yaml) for the YAML format.
+If SNV calls are already available, provide the SNV calls as SRC input and provide the sequencing data (either FASTQ or BAM/CRAM) as FASTQ or BAM/CRAM input. With CSV input, keep all columns and leave fields blank per row as needed. See [template CSV](./input/template-input-mix-SRC-SNV.csv) for the CSV format and [template YAML](./input/template-input-mix-SRC-SNV.yaml) for the YAML format.
 
 ### Input VCF
 
-TO-DO
+Existing variant calls can be provided as VCFs to run only the pipelines that operate on calls: `StableLiftsSNV`, `StableLiftgSNP`, `annotate-gSNP`, `annotate-sSNV`, and `call-GeneticAncestry`. VCF input cannot be combined with other input types, and `override_realignment` and `override_recalibrate_bam` are automatically enabled.
+
+| Field | Type | Required | Description |
+| :---: | :--: | :------: | :---------: |
+| patient | string | yes | Identifier for the patient |
+| genetic_sex | string | yes | Genetic sex of the patient. Must be "XX", "XY", or "unknown" |
+| sample | string | yes | Identifier for the sample |
+| state | string | yes | Must be either "tumor" or "normal" |
+| vcf_tool | string | yes | Tool used to generate the calls. Options: `HaplotypeCaller`, `DeepVariant`, `Mutect2`, `DeepSomatic`, `MuSE`, `Strelka2`, `SomaticSniper`, `BCFtools-Intersect`, `Manta-gSV`, `Manta-sSV`, `Delly2-gSV`, `Delly2-sSV` |
+| vcf_path | path | yes | Absolute path to the VCF |
+
+Each tool can be given only once per sample. See this [template](input/template-input-VCF.csv) for CSV format and this [template](input/template-input-VCF.yaml) for YAML format. In YAML input, each entry under `VCF` uses the keys `tool` and `vcf_path`.
 
 ---
 
 ## Outputs
 
-Outputs will be placed under `<params.output_dir>/metapipeline-DNA-<version>/<params.project_id>` and organized by individual pipeline. See individual pipeline documentation for specific outputs generated per pipeline.
+Outputs will be placed under `<params.output_dir>/metapipeline-DNA-<version>/<params.project_id>/`:
+
+| Path | Contents |
+| :---: | :---: |
+| `main_workflow/output/` | Outputs from each pipeline, organized by pipeline. See individual pipeline documentation for specific outputs generated per pipeline. |
+| `main_workflow/intermediate/` | Generated pipeline inputs and params, `workflow-status/` reports for each patient/sample job, `output-manifests/`, and `output-finalization-plans/` |
+| `log-metapipeline-DNA-<timestamp>/` | Nextflow logs (`nextflow-log/`) and per-process logs (`process-log/`) for the leading job and each patient/sample job |
+
+Each patient/sample job writes an `output_manifest.json` under `main_workflow/intermediate/output-manifests/<identifier>/<run>/`. It records the align-DNA and recalibrate-BAM BAMs generated by that job, along with their indexes and checksums. Once the job is verified as successful, [output finalization](#output-finalization) uses the manifest to:
+- Convert each recalibrated BAM to a CRAM, with a `.crai` index and `.sha512` checksums, next to the original BAM. The BAM is then deleted unless `finalization_delete_recalibrated_bams` is disabled.
+- Delete the align-DNA BAMs, along with their indexes and checksums, if `finalization_delete_alignment_bams` is enabled.
+
+Finalization records are kept in a `finalization/` folder next to each manifest, so an interrupted run can resume without redoing completed conversions or deletions. Jobs that fail or can't be verified are not finalized, and their BAMs are left in place.
 
 ---
 
