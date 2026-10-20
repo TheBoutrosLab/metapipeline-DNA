@@ -100,7 +100,7 @@ Each worker node performs the following steps:
 ## Pipeline Steps
 
 ### 1. convert-BAM2FASTQ
-*Optional*: Only run when BAM or CRAM are provided as input and realignment is not overriden.
+*Optional*: Only run when BAM or CRAM are provided as input and realignment is not overridden.
 
 Aligned data is back-converted to FASTQ using [pipeline-convert-BAM2FASTQ](https://theboutroslab.github.io/pipeline-convert-BAM2FASTQ/).
 
@@ -267,7 +267,7 @@ Pipeline selection follows some default behaviors:
 
 ### Pipeline-specific params
 
-Each pipeline has a set of parameters that must be provided. The available parameters for each pipeline are documented in the links in the [steps](#pipeline-steps). Additionally, the default [template.config](./input/template.config) contains the default set of parameters that need to be defined for each pipeline. Any additional supported parameters can be added as needed. The following keys are used as the pipeline names in this namespace:
+Each pipeline has a set of parameters that must be provided. The available parameters for each pipeline are documented in the links in the [steps](#pipeline-steps). Additionally, the default [template.config](config/template.config) contains the default set of parameters that need to be defined for each pipeline. Any additional supported parameters can be added as needed. The following keys are used as the pipeline names in this namespace:
 
 | Pipeline | Key |
 | :---: | :---: |
@@ -318,6 +318,10 @@ For targeted or exome sequencing, target intervals can be provided in BED format
 | `call-gSNP` | `intervals` |
 | `recalibrate-BAM` | `intervals` |
 | `calculate-targeted-coverage` | `target_bed` |
+| `generate-SQC-BAM` | `intervals_bed` |
+| `call-sCNA` | `target_bed` |
+
+When calculate-targeted-coverage runs, the expanded intervals it generates replace the intervals given to call-sSNV, call-gSNP, and recalibrate-BAM, unless `use_original_intervals` is enabled.
 
 For the respective pipeline params, provide the full path to the intervals file in the generated config to make use of the targets. For example:
 
