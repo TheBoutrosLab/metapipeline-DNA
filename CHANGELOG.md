@@ -8,6 +8,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Changed
+
+- Align-DNA: `v11.7.1`
+
 ### Fixed
 
 - Update documentation to match state of implementation
