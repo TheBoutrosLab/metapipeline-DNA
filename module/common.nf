@@ -17,10 +17,14 @@ String combine_input_with_params(Map params_to_add,  File input_yaml = null) {
 *   Generate command line arguments for a child Nextflow run to use the same weblog
 */
 String generate_weblog_args() {
-    if (getSession().config.navigate('weblog.enabled') as Boolean) {
-        return "-with-weblog ${getSession().config.navigate('weblog.url')}";
+    if (!(getSession().config.navigate('weblog.enabled') as Boolean)) {
+        return "";
     }
-    return "";
+    // Reuse the weblog config written by templates/nextflow-wrapper
+    def weblog_config = getSession().configFiles.find { it.name == 'weblog.config' }
+    return weblog_config
+        ? "-c ${weblog_config}"
+        : "-with-weblog ${getSession().config.navigate('weblog.url')}";
 }
 
 String identify_file(filepath, Boolean resolve_symlinks = true) {
