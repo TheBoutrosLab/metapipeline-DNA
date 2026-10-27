@@ -19,12 +19,14 @@ process run_call_GeneticAncestry {
 
     publishDir "${params.output_dir}/output",
         mode: "copy",
-        pattern: "pipeline-call-genetic-ancestry-*/*"
+        pattern: "pipeline-call-genetic-ancestry-*/*",
+        failOnError: false
 
     publishDir "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
-        saveAs: { "${task.process.replace(':', '/')}-${sample_id_for_call_geneticancestry}/log${file(it).getName()}" }
+        saveAs: { "${task.process.replace(':', '/')}-${sample_id_for_call_geneticancestry}/log${file(it).getName()}" },
+        failOnError: false
 
     input:
         tuple(
@@ -37,7 +39,7 @@ process run_call_GeneticAncestry {
         path "pipeline-call-genetic-ancestry-*/*", optional: true
         path ".command.*"
         val('done'), emit: complete
-        env EXIT_CODE, emit: exit_code
+        env('EXIT_CODE'), emit: exit_code
 
     script:
     String params_to_dump = combine_input_with_params(params["call_GeneticAncestry"].metapipeline_arg_map, new File(input_yaml.toRealPath().toString()))

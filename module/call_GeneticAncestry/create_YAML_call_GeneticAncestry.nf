@@ -12,7 +12,8 @@ import org.yaml.snakeyaml.Yaml
 process create_YAML_call_GeneticAncestry {
     publishDir "${params.output_dir}/intermediate/${task.process.replace(':', '/')}-${params.patient}/${sample_id}",
         pattern: 'call_geneticancestry_input.yaml',
-        mode: 'copy'
+        mode: 'copy',
+        failOnError: false
 
     input:
         val(sample_info)

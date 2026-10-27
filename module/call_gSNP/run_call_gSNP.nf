@@ -19,11 +19,13 @@ process run_call_gSNP {
     publishDir path: "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
-        saveAs: { "${task.process.replace(':', '/')}-${sample_id_for_call_gsnp}/log${file(it).getName()}" }
+        saveAs: { "${task.process.replace(':', '/')}-${sample_id_for_call_gsnp}/log${file(it).getName()}" },
+        failOnError: false
 
     publishDir "${params.output_dir}/output",
         mode: "copy",
-        pattern: "call-gSNP-*/*"
+        pattern: "call-gSNP-*/*",
+        failOnError: false
 
     input:
         tuple(
@@ -37,7 +39,7 @@ process run_call_gSNP {
         path "call-gSNP-*/*", optional: true
         path ".command.*"
         val('done'), emit: complete
-        env EXIT_CODE, emit: exit_code
+        env('EXIT_CODE'), emit: exit_code
 
     script:
     output_directory = "call-gSNP-*/${sample_id_for_call_gsnp}"

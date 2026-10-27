@@ -11,12 +11,14 @@ process write_output_manifest {
         mode: 'copy',
         pattern: 'output_manifest.json',
         saveAs: { file(params.output_manifest_path).name },
-        overwrite: true
+        overwrite: true,
+        failOnError: false
 
     publishDir path: "${params.output_dir}/intermediate/output-manifests/${params.workflow_identifier}/${params.task_hash}",
         mode: 'copy',
         pattern: 'output_manifest.json',
-        overwrite: true
+        overwrite: true,
+        failOnError: false
 
     input:
     val(manifest_entries)

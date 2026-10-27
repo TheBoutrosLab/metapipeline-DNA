@@ -8,12 +8,14 @@ process call_convert_BAM2FASTQ {
     
     publishDir "${params.output_dir}/output",
         mode: 'copy',
-        pattern: 'convert-BAM2FASTQ-*/*'
+        pattern: 'convert-BAM2FASTQ-*/*',
+        failOnError: false
 
     publishDir path: "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
-        saveAs: { "${task.process.replace(':', '/')}-${sample}/log${file(it).getName()}" }
+        saveAs: { "${task.process.replace(':', '/')}-${sample}/log${file(it).getName()}" },
+        failOnError: false
 
     input:
         tuple(

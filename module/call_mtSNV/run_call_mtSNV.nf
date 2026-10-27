@@ -8,11 +8,13 @@ process run_call_mtSNV {
     publishDir path: "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
-        saveAs: { "${task.process.replace(':', '/')}-${mtsnv_sample_id}/log${file(it).getName()}" }
+        saveAs: { "${task.process.replace(':', '/')}-${mtsnv_sample_id}/log${file(it).getName()}" },
+        failOnError: false
 
     publishDir "${params.output_dir}/output",
         mode: "copy",
-        pattern: "call-mtSNV-*/*"
+        pattern: "call-mtSNV-*/*",
+        failOnError: false
     
     input:
         tuple(
@@ -24,7 +26,7 @@ process run_call_mtSNV {
         path "call-mtSNV-*/*", optional: true
         path ".command.*"
         val('done'), emit: complete
-        env EXIT_CODE, emit: exit_code
+        env('EXIT_CODE'), emit: exit_code
 
     script:
     String params_to_dump = combine_input_with_params(params.call_mtSNV.metapipeline_arg_map, new File(input_yaml.toRealPath().toString()))

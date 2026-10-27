@@ -1,6 +1,4 @@
 
-nextflow.enable.dsl = 2
-
 include { convert_BAM2FASTQ } from "${moduleDir}/convert_BAM2FASTQ/workflow"
 include { align_DNA } from "${moduleDir}/align_DNA/workflow"
 include { recalibrate_BAM } from "${moduleDir}/recalibrate_BAM/workflow"

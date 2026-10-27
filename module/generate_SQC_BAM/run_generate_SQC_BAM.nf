@@ -13,11 +13,13 @@ process run_generate_SQC_BAM {
     publishDir path: "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
-        saveAs: { "${task.process.replace(':', '/')}-${resolved_id}/log${file(it).getName()}" }
+        saveAs: { "${task.process.replace(':', '/')}-${resolved_id}/log${file(it).getName()}" },
+        failOnError: false
 
     publishDir "${params.output_dir}/output",
         mode: "copy",
-        pattern: "generate-SQC-BAM-*/*"
+        pattern: "generate-SQC-BAM-*/*",
+        failOnError: false
 
     input:
         tuple val(resolved_id), path(input_yaml)
@@ -27,7 +29,7 @@ process run_generate_SQC_BAM {
         path "generate-SQC-BAM-*/*", optional: true
         path ".command.*"
         val('done'), emit: complete
-        env EXIT_CODE, emit: exit_code
+        env('EXIT_CODE'), emit: exit_code
 
     script:
     output_directory = "generate-SQC-BAM-*/${resolved_id}"

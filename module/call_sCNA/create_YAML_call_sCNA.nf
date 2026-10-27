@@ -13,7 +13,8 @@ process create_YAML_call_sCNA {
     publishDir "${params.output_dir}/intermediate/${task.process.replace(':', '/')}-${tumor_id}",
         enabled: params.save_intermediate_files,
         pattern: 'call_sCNA_input.yaml',
-        mode: 'copy'
+        mode: 'copy',
+        failOnError: false
 
     input:
         tuple(
