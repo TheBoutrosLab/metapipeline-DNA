@@ -14,6 +14,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Convert-BAM2FASTQ: `v2.0.0`
 - Align-DNA: `v12.0.0`
 - Generate-SQC-BAM: `v2.0.0`
+- Recalibrate-BAM: `v3.0.0`
 - Call-sSNV: `v10.0.0`
 
 ## [11.0.0] - 2026-10-22
