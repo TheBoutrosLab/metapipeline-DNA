@@ -20,6 +20,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Call-mtSNV: `v7.0.0`
 - Call-gSV: `v6.0.0`
 - Call-sSV: `v9.0.0`
+- Call-sCNA: `v3.0.0`
 
 ## [11.0.0] - 2026-10-22
 
