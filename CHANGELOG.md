@@ -24,6 +24,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Annotate-VCF: `v2.0.0`
 - Calculate-mtDNA-CopyNumber: `v2.0.0`
 - Calculate-targeted-coverage: `v3.0.0`
+- StableLift: `v3.0.0`
 
 ## [11.0.0] - 2026-10-22
 
