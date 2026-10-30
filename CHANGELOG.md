@@ -11,6 +11,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 
 - Support Nextflow `25.10.5`
+- Convert-BAM2FASTQ: `v2.0.0`
+- Call-sSNV: `v10.0.0`
 
 ## [11.0.0] - 2026-10-22
 
