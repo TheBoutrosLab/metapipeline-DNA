@@ -25,6 +25,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Calculate-mtDNA-CopyNumber: `v2.0.0`
 - Calculate-targeted-coverage: `v3.0.0`
 - StableLift: `v3.0.0`
+- Nextflow-config: `v2.0.0`
+- Nextflow-module: `v2.0.0`
 
 ## [11.0.0] - 2026-10-22
 
