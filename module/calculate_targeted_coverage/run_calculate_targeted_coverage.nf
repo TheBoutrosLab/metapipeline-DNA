@@ -15,11 +15,13 @@ process run_calculate_targeted_coverage {
     publishDir path: "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
-        saveAs: { "${task.process.replace(':', '/')}-${sample_id_for_targeted_coverage}/log${file(it).getName()}" }
+        saveAs: { "${task.process.replace(':', '/')}-${sample_id_for_targeted_coverage}/log${file(it).getName()}" },
+        failOnError: false
 
     publishDir "${params.output_dir}/output",
         mode: "copy",
-        pattern: "calculate-targeted-coverage-*/*"
+        pattern: "calculate-targeted-coverage-*/*",
+        failOnError: false
 
 
     input:
@@ -32,7 +34,7 @@ process run_calculate_targeted_coverage {
         tuple val(sample_id_for_targeted_coverage), path(output_directory), emit: identify_targeted_coverage_out, optional: true
         path "calculate-targeted-coverage-*/*", optional: true
         path ".command.*"
-        env EXIT_CODE, emit: exit_code
+        env('EXIT_CODE'), emit: exit_code
 
     script:
     output_directory = "calculate-targeted-coverage-*/${sample_id_for_targeted_coverage}/SAMtools-*/output"

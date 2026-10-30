@@ -1,6 +1,4 @@
 
-nextflow.enable.dsl = 2
-
 include { convert_BAM2FASTQ } from "${projectDir}/../../module/convert_BAM2FASTQ/workflow"
 include { create_directory } from "${projectDir}/../../module/pipeline_status"
 

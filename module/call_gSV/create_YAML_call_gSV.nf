@@ -11,7 +11,8 @@ import org.yaml.snakeyaml.Yaml
 process create_YAML_call_gSV {
     publishDir "${params.output_dir}/intermediate/${task.process.replace(':', '/')}-${patient_id}/${sample_id}",
         pattern: 'call_gSV_input.yaml',
-        mode: 'copy'
+        mode: 'copy',
+        failOnError: false
 
     input:
         tuple(

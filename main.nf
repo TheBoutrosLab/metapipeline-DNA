@@ -3,8 +3,6 @@
 * Main entrance of calling the germline somatic pipeline in batches.
 */
 
-nextflow.enable.dsl = 2
-
 import groovy.json.JsonOutput
 
 include { finalize_outputs } from './module/finalize_outputs'
@@ -73,7 +71,8 @@ process create_config_metapipeline_DNA {
     publishDir path: "${params.final_output_dir}/intermediate",
         mode: "copy",
         pattern: "*.json",
-        saveAs: { "${task.process}/${identifier}-${file(it).getName()}" }
+        saveAs: { "${task.process}/${identifier}-${file(it).getName()}" },
+        failOnError: false
 
     input:
         tuple(
@@ -138,7 +137,8 @@ process call_metapipeline_DNA {
     publishDir path: "${params.log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
-        saveAs: { "${task.process}/${identifier}-${new StringBuilder(task.hash).insert(2, '-').toString()}/log${file(it).getName()}" }
+        saveAs: { "${task.process}/${identifier}-${new StringBuilder(task.hash).insert(2, '-').toString()}/log${file(it).getName()}" },
+        failOnError: false
 
     tag { identifier }
 
@@ -152,7 +152,7 @@ process call_metapipeline_DNA {
     output:
         // The child may still be running after sbatch returns. Pass the future
         // manifest location as a value, not an eagerly staged path input.
-        tuple env(CURRENT_WORK_DIR), env(SBATCH_RET), val(identifier), env(OUTPUT_MANIFEST_PATH), emit: submit_out
+        tuple env('CURRENT_WORK_DIR'), env('SBATCH_RET'), val(identifier), env('OUTPUT_MANIFEST_PATH'), emit: submit_out
         path(".command.*")
 
     script:
@@ -216,13 +216,15 @@ process check_process_status {
     publishDir path: "${params.log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
-        saveAs: { "${task.process}/${file(work_dir).getParent().getFileName()}-${file(work_dir).getFileName()}/log${file(it).getName()}" }
+        saveAs: { "${task.process}/${file(work_dir).getParent().getFileName()}-${file(work_dir).getFileName()}/log${file(it).getName()}" },
+        failOnError: false
 
     publishDir path: "${params.final_output_dir}/intermediate/workflow-status",
         mode: 'copy',
         overwrite: true,
         pattern: 'workflow_status.json',
-        saveAs: { "${file(work_dir).parent.fileName}-${file(work_dir).fileName}/workflow_status.json" }
+        saveAs: { "${file(work_dir).parent.fileName}-${file(work_dir).fileName}/workflow_status.json" },
+        failOnError: false
 
     input:
         tuple val(work_dir), val(sbatch_ret), val(identifier), val(output_manifest_path)
@@ -232,7 +234,7 @@ process check_process_status {
     output:
     path(".command.*")
     tuple val(identifier), path('output_manifest.json'), emit: manifest, optional: true
-    tuple val(identifier), env(WORKFLOW_STATUS), path('workflow_status.json'), emit: status
+    tuple val(identifier), env('WORKFLOW_STATUS'), path('workflow_status.json'), emit: status
 
     shell:
     quoted_work_dir = shellQuote(work_dir)
@@ -254,7 +256,7 @@ workflow {
         }
     }
 
-    ich_individual = Channel.from(input_data);
+    ich_individual = Channel.fromList(input_data);
 
     if (params.sample_mode == 'single') {
         // Group by sample

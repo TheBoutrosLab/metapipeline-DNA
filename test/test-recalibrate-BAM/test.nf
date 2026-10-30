@@ -1,5 +1,3 @@
-nextflow.enable.dsl = 2
-
 include { recalibrate_BAM } from "${projectDir}/../../module/recalibrate_BAM/workflow"
 include { create_directory } from "${projectDir}/../../module/pipeline_status"
 

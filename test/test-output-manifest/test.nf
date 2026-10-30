@@ -1,5 +1,3 @@
-nextflow.enable.dsl = 2
-
 import groovy.json.JsonOutput
 import java.nio.file.Files
 

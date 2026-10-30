@@ -18,7 +18,8 @@ include { sanitize_string } from '../../external/pipeline-Nextflow-module/module
 process create_YAML_call_sSNV {
     publishDir "${params.output_dir}/intermediate/${task.process.replace(':', '/')}-${params.patient}/${sample_id}",
         pattern: 'call_sSNV_input.yaml',
-        mode: 'copy'
+        mode: 'copy',
+        failOnError: false
 
     input:
         tuple(

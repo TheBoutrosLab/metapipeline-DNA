@@ -8,12 +8,14 @@ process call_align_DNA {
 
     publishDir "${params.output_dir}/output",
         mode: "copy",
-        pattern: "align-DNA-*/*"
+        pattern: "align-DNA-*/*",
+        failOnError: false
 
     publishDir path: "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
-        saveAs: { "${task.process.replace(':', '/')}-${sample}/log${file(it).getName()}" }
+        saveAs: { "${task.process.replace(':', '/')}-${sample}/log${file(it).getName()}" },
+        failOnError: false
 
     input:
         tuple(
@@ -26,8 +28,8 @@ process call_align_DNA {
     output:
         // task.workDir is available when outputs are collected, after script rendering.
         tuple val(sample), path(output_directory), val({ manifest_context + [task_work_dir: task.workDir.toString()] }), emit: align_dna_output_directory
-        file "align-DNA-*/*"
-        file ".command.*"
+        path "align-DNA-*/*"
+        path ".command.*"
 
     script:
     output_directory = "align-DNA-*/${sample}"

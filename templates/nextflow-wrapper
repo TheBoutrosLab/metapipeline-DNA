@@ -371,11 +371,16 @@ def run():
         nextflow_args = ["nextflow"]
         nextflow_args.extend(sys.argv[1:])
 
-        # Add arguments to make Nextflow log to the server
-        nextflow_args.extend([
-            "-with-weblog",
-            f"http://localhost:{log_server.server_address[1]}",
-        ])
+        # Point Nextflow's weblog at the server through config, since
+        # `-with-weblog` is deprecated
+        weblog_config = log_output_dir / "weblog.config"
+        weblog_config.write_text(
+            "weblog {\n"
+            "    enabled = true\n"
+            f"    url = 'http://localhost:{log_server.server_address[1]}'\n"
+            "}\n"
+        )
+        nextflow_args.extend(["-c", str(weblog_config)])
 
         # Start Nextflow in the same process group so that it receives the same
         # signals as this script

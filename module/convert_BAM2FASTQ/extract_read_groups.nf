@@ -2,12 +2,13 @@
 process extract_read_groups {
     container "quay.io/biocontainers/pysam:0.16.0.1--py38hf7546f9_3"
 
-    containerOptions "${params.container_mount_flag} ${moduleDir}:${moduleDir}"
+    ext containerOptions: "${params.container_mount_flag} ${moduleDir}:${moduleDir}"
 
     publishDir path: "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
-        saveAs: { "${task.process.replace(':', '/')}-${sample}/log${file(it).getName()}" }
+        saveAs: { "${task.process.replace(':', '/')}-${sample}/log${file(it).getName()}" },
+        failOnError: false
 
     input:
         tuple(

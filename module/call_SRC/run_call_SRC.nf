@@ -19,12 +19,14 @@ process run_call_SRC {
 
     publishDir "${params.output_dir}/output",
         mode: "copy",
-        pattern: "call-SRC-*/*"
+        pattern: "call-SRC-*/*",
+        failOnError: false
 
     publishDir "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
-        saveAs: { "${task.process.replace(':', '/')}-${sample_id_for_call_src}/log${file(it).getName()}" }
+        saveAs: { "${task.process.replace(':', '/')}-${sample_id_for_call_src}/log${file(it).getName()}" },
+        failOnError: false
 
     input:
         tuple(
@@ -36,7 +38,7 @@ process run_call_SRC {
         path "call-SRC-*/*", optional: true
         path ".command.*"
         val('done'), emit: complete
-        env EXIT_CODE, emit: exit_code
+        env('EXIT_CODE'), emit: exit_code
 
     script:
     String params_to_dump = combine_input_with_params(params.call_SRC.metapipeline_arg_map, new File(input_yaml.toRealPath().toString()))

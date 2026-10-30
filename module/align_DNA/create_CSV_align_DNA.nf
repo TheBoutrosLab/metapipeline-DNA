@@ -18,11 +18,13 @@ process create_CSV_align_DNA {
     publishDir path: "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
-        saveAs: { "${task.process.replace(':', '/')}-${params.patient}/${sample}/log${file(it).getName()}" }
+        saveAs: { "${task.process.replace(':', '/')}-${params.patient}/${sample}/log${file(it).getName()}" },
+        failOnError: false
 
     publishDir path: "${params.output_dir}/intermediate/${task.process.replace(':', '/')}-${params.patient}/${sample}",
         mode: "copy",
-        pattern: "*.csv"
+        pattern: "*.csv",
+        failOnError: false
 
     input:
         tuple(

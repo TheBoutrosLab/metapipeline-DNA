@@ -56,6 +56,8 @@ Metapipeline-DNA is a DNA sequencing processing pipeline that accepts sequencing
 
 ## How To Run
 
+**Requirements**: Currently supported Nextflow versions: `25.10.5` (requires Java 17 or later)
+
 1. Create a config file using the [`template`](config/template.config), which takes the input samples along with general parameters, with a section defining the parameters, reference files, and resources configurations for each run and each pipeline. See [configuration](#configuration) for details on available options and configurations.
 
 2. Create an `input.csv` or an `input.yaml` file (following the descriptions [here](#inputs)) to provide input files for each sample. If using an input CSV, add the path to the CSV to the config generated in step 1.
