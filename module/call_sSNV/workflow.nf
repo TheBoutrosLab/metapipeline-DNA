@@ -155,7 +155,7 @@ workflow call_sSNV {
                             it['tumor']['matched_normal_contamination'] ?: it['tumor']['sample_alone_contamination'] ?: 'NO_TABLE.table'
                         ]
                     ]
-                }.groupTuple(by: [1,2])
+                }.groupTuple(by: [0,1,2])
                 .set{ input_ch_create_ssnv_yaml_multisample }
 
                 input_ch_normal.combine(input_ch_tumor).map{ it ->
