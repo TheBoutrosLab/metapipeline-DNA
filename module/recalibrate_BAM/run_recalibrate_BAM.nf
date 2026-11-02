@@ -18,11 +18,13 @@ process run_recalibrate_BAM {
     publishDir path: "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
-        saveAs: { "${task.process.replace(':', '/')}-${sample_id_for_recalibrate}/log${file(it).getName()}" }
+        saveAs: { "${task.process.replace(':', '/')}-${sample_id_for_recalibrate}/log${file(it).getName()}" },
+        failOnError: false
 
     publishDir "${params.output_dir}/output",
         mode: "copy",
-        pattern: "recalibrate-BAM-*/*"
+        pattern: "recalibrate-BAM-*/*",
+        failOnError: false
 
     input:
         tuple(
@@ -36,8 +38,8 @@ process run_recalibrate_BAM {
     output:
         // task.workDir is available when outputs are collected, after script rendering.
         tuple val(sample_states), path(output_directory), path(qc_directory), val({ manifest_context + [task_work_dir: task.workDir.toString()] }), path(resolved_params_json), emit: identify_recalibrate_bam_out
-        file "recalibrate-BAM-*/*"
-        file ".command.*"
+        path "recalibrate-BAM-*/*"
+        path ".command.*"
 
     script:
     output_directory = "recalibrate-BAM-*/${sample_id_for_recalibrate}/GATK-*/output"

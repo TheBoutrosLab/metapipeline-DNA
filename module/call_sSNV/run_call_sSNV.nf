@@ -22,11 +22,13 @@ process run_call_sSNV {
     publishDir path: "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
-        saveAs: { "${task.process.replace(':', '/')}-${sample_id}/log${file(it).getName()}" }
+        saveAs: { "${task.process.replace(':', '/')}-${sample_id}/log${file(it).getName()}" },
+        failOnError: false
 
     publishDir "${params.output_dir}/output",
         mode: "copy",
-        pattern: "call-sSNV-*/*"
+        pattern: "call-sSNV-*/*",
+        failOnError: false
 
     input:
         tuple(
@@ -41,7 +43,7 @@ process run_call_sSNV {
         path "call-sSNV-*/*", optional: true
         path ".command.*"
         val('done'), emit: complete
-        env EXIT_CODE, emit: exit_code
+        env('EXIT_CODE'), emit: exit_code
 
     script:
     output_directory = "call-sSNV-*/${META.param_output_dir_name}"

@@ -16,7 +16,8 @@ process convert_finalization_bam {
     publishDir path: "${params.log_output_dir}/process-log",
         mode: 'copy',
         pattern: '.command.*',
-        saveAs: { "${task.process.replace(':', '/')}/${identifier}-${request.entry.sample.toString().replaceAll(/[^A-Za-z0-9_.-]/, '_')}-${task.hash.replace('/', '-')}/log${file(it).name}" }
+        saveAs: { "${task.process.replace(':', '/')}/${identifier}-${request.entry.sample.toString().replaceAll(/[^A-Za-z0-9_.-]/, '_')}-${task.hash.replace('/', '-')}/log${file(it).name}" },
+        failOnError: false
 
     container 'ghcr.io/theboutroslab/samtools:1.24'
 

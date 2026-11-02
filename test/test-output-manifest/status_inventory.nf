@@ -1,4 +1,3 @@
-nextflow.enable.dsl = 2
 import groovy.json.JsonSlurper
 import java.nio.file.Files
 

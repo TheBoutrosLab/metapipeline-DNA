@@ -12,7 +12,8 @@ import org.yaml.snakeyaml.Yaml
 process create_YAML_calculate_mtDNA_CopyNumber {
     publishDir "${params.output_dir}/intermediate/${task.process.replace(':', '/')}-${params.patient}/${sample_id}",
         pattern: 'calculate_mtdna_cn.yaml',
-        mode: 'copy'
+        mode: 'copy',
+        failOnError: false
 
     input:
         val(sample_info)

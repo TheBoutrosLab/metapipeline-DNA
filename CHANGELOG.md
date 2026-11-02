@@ -8,6 +8,26 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Changed
+
+- Support Nextflow `25.10.5`
+- Convert-BAM2FASTQ: `v2.0.0`
+- Align-DNA: `v12.0.0`
+- Generate-SQC-BAM: `v2.0.0`
+- Recalibrate-BAM: `v3.0.0`
+- Call-gSNP: `v13.0.0`
+- Call-sSNV: `v10.0.0`
+- Call-mtSNV: `v7.0.0`
+- Call-gSV: `v6.0.0`
+- Call-sSV: `v9.0.0`
+- Call-sCNA: `v3.0.0`
+- Annotate-VCF: `v2.0.0`
+- Calculate-mtDNA-CopyNumber: `v2.0.0`
+- Calculate-targeted-coverage: `v3.0.0`
+- StableLift: `v3.0.0`
+- Nextflow-config: `v2.0.0`
+- Nextflow-module: `v2.0.0`
+
 ## [11.0.0] - 2026-10-22
 
 ### Changed

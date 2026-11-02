@@ -18,11 +18,13 @@ process run_call_sCNA {
     publishDir path: "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
-        saveAs: { "${task.process.replace(':', '/')}-${task.index}/log${file(it).getName()}" }
+        saveAs: { "${task.process.replace(':', '/')}-${task.index}/log${file(it).getName()}" },
+        failOnError: false
 
     publishDir "${params.output_dir}/output",
         mode: "copy",
-        pattern: "call-sCNA-*/*"
+        pattern: "call-sCNA-*/*",
+        failOnError: false
 
     input:
         tuple val(tumor_id), path(input_yaml)
@@ -32,7 +34,7 @@ process run_call_sCNA {
         path "call-sCNA-*/*", optional: true
         path ".command.*"
         val('done'), emit: complete
-        env EXIT_CODE, emit: exit_code
+        env('EXIT_CODE'), emit: exit_code
 
     script:
     output_directory = "call-sCNA-*/${tumor_id}"

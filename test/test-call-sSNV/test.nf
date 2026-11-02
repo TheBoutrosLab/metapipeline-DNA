@@ -1,5 +1,3 @@
-nextflow.enable.dsl = 2
-
 include { call_sSNV } from "${projectDir}/../../module/call_sSNV/workflow"
 include { create_directory; mark_pipeline_complete; delete_completion_file } from "${projectDir}/../../module/pipeline_status"
 

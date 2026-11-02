@@ -27,7 +27,7 @@ workflow convert_BAM2FASTQ {
             samples << ['patient': s_data.patient, 'sample': s, 'state': s_data.state, 'bam': s_data.original_data.path, 'type': s_data.original_data.type]
         }
 
-        ich = Channel.from(samples)
+        ich = Channel.fromList(samples)
             .map{ tuple(it.patient, it.sample, it.state, file(it.bam), it.type) }
 
         extract_read_groups(ich.map{ patient, sample, state, bam, input_type -> tuple(patient, sample, state, bam) })

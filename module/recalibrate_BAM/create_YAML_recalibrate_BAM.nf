@@ -11,7 +11,8 @@ import org.yaml.snakeyaml.Yaml
 process create_YAML_recalibrate_BAM {
     publishDir "${params.output_dir}/intermediate/${task.process.replace(':', '/')}-${params.patient}/${patient_id}",
         pattern: 'recalibrate_BAM_input.yaml',
-        mode: 'copy'
+        mode: 'copy',
+        failOnError: false
 
     input:
         val(sample_info)

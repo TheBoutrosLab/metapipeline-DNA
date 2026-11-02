@@ -11,7 +11,8 @@ import org.yaml.snakeyaml.Yaml
 process create_YAML_call_sSV {
     publishDir "${params.output_dir}/intermediate/${task.process.replace(':', '/')}-${tumor_id}",
         pattern: 'call_sSV_input.yaml',
-        mode: 'copy'
+        mode: 'copy',
+        failOnError: false
 
     input:
         tuple(

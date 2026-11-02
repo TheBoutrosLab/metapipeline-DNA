@@ -11,7 +11,8 @@ import org.yaml.snakeyaml.Yaml
 process create_YAML_call_gSNP {
     publishDir "${params.output_dir}/intermediate/${task.process.replace(':', '/')}-${params.patient}/${patient_id}",
         pattern: 'call_gSNP_input.yaml',
-        mode: 'copy'
+        mode: 'copy',
+        failOnError: false
 
     input:
         val(sample_info)

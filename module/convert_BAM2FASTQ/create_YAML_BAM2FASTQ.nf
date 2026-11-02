@@ -11,7 +11,8 @@ import org.yaml.snakeyaml.Yaml
 process create_YAML_convert_BAM2FASTQ {
     publishDir "${params.output_dir}/intermediate/${task.process.replace(':', '/')}-${params.patient}/${sample}",
         pattern: "convert_BAM2FASTQ_input.yaml",
-        mode: "copy"
+        mode: "copy",
+        failOnError: false
 
     input:
         tuple val(patient), val(sample), val(state), val(bam), val(input_type)

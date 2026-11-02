@@ -11,7 +11,8 @@ import org.yaml.snakeyaml.Yaml
 process create_YAML_generate_SQC_BAM {
     publishDir "${params.output_dir}/intermediate/${task.process.replace(':', '/')}-${patient_id}",
         pattern: 'generate_SQC_BAM_input.yaml',
-        mode: 'copy'
+        mode: 'copy',
+        failOnError: false
 
     input:
         val(sample_info)

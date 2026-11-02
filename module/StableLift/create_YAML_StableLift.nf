@@ -12,7 +12,8 @@ import org.yaml.snakeyaml.Yaml
 process create_YAML_StableLift {
     publishDir "${params.output_dir}/intermediate/${task.process.replace(':', '/')}-${params.patient}/${sample_id}",
         pattern: 'stablelift_input.yaml',
-        mode: 'copy'
+        mode: 'copy',
+        failOnError: false
 
     input:
         val(sample_info)

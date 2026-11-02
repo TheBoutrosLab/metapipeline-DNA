@@ -19,12 +19,14 @@ process run_StableLift {
 
     publishDir "${params.output_dir}/output",
         mode: "copy",
-        pattern: "pipeline-StableLift-*/*"
+        pattern: "StableLift-*/*",
+        failOnError: false
 
     publishDir "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
-        saveAs: { "${task.process.replace(':', '/')}-${sample_id_for_stablelift}/log${file(it).getName()}" }
+        saveAs: { "${task.process.replace(':', '/')}-${sample_id_for_stablelift}/log${file(it).getName()}" },
+        failOnError: false
 
     input:
         tuple(
@@ -35,10 +37,10 @@ process run_StableLift {
         )
 
     output:
-        path "pipeline-StableLift-*/*", optional: true
+        path "StableLift-*/*", optional: true
         path ".command.*"
         val('done'), emit: complete
-        env EXIT_CODE, emit: exit_code
+        env('EXIT_CODE'), emit: exit_code
 
     script:
     String params_to_dump = combine_input_with_params(params["StableLift"].metapipeline_arg_map, new File(input_yaml.toRealPath().toString()))

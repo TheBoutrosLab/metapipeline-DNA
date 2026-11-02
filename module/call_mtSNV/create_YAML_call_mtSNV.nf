@@ -11,7 +11,8 @@ import org.yaml.snakeyaml.Yaml
 process create_YAML_call_mtSNV {
     publishDir "${params.output_dir}/intermediate/${task.process.replace(':', '/')}-${params.patient}/${mtsnv_sample_id}",
         pattern: 'call_mtSNV_input.yaml',
-        mode: 'copy'
+        mode: 'copy',
+        failOnError: false
 
     input:
         val(sample_info)

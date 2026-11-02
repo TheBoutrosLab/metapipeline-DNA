@@ -17,12 +17,14 @@ process run_call_sSV {
 
     publishDir "${params.output_dir}/output",
         mode: "copy",
-        pattern: "call-sSV-*/*"
+        pattern: "call-sSV-*/*",
+        failOnError: false
 
     publishDir path: "${params.metapipeline_log_output_dir}/process-log",
         mode: "copy",
         pattern: ".command.*",
-        saveAs: { "${task.process.replace(':', '/')}-${task.index}/log${file(it).getName()}" }
+        saveAs: { "${task.process.replace(':', '/')}-${task.index}/log${file(it).getName()}" },
+        failOnError: false
 
     input:
         tuple val(sample_id), path(input_yaml)
@@ -32,7 +34,7 @@ process run_call_sSV {
         path "call-sSV-*/*", optional: true
         path ".command.*"
         val('done'), emit: complete
-        env EXIT_CODE, emit: exit_code
+        env('EXIT_CODE'), emit: exit_code
 
     script:
     output_directory = "call-sSV-*/${sample_id}"
