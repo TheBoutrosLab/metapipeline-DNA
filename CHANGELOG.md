@@ -8,6 +8,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Changed
+
+- Recalibrate-BAM: `v3.0.1`
+
 ## [11.1.1] - 2026-11-02
 
 ### Fixed
