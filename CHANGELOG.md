@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 
 - Recalibrate-BAM: `v3.0.1`
+- Convert-BAM2FASTQ: `v2.1.0`
 
 ## [11.1.1] - 2026-11-02
 
