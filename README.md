@@ -210,6 +210,9 @@ The following parameters are available at the metapipeline level:
 | `apptainer_library` / `apptainer_cache` | path | no | Apptainer library and cache directories when using the `apptainer` profile |
 | `singularity_library` / `singularity_cache` | path | no | Singularity library and cache directories when using the `singularity` profile |
 
+> [!NOTE]
+> **Container image pulling (`ociAutoPull`)**: The `apptainer` and `singularity` profiles enable `ociAutoPull` by default, so Nextflow pulls each OCI image directly. If the library or cache parameter for the selected profile is set (`apptainer_library` or `apptainer_cache` for `apptainer`, `singularity_library` or `singularity_cache` for `singularity`), `ociAutoPull` is disabled. Nextflow then looks for each image in the library directory, then the cache directory, and pulls it only if it is not found in either. These parameters are passed to every child pipeline, so the same behavior applies throughout the run. The `docker` profile is not affected.
+
 
 ### Output finalization
 
