@@ -10,8 +10,20 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
-- Recalibrate-BAM: `v3.0.1`
-- Convert-BAM2FASTQ: `v2.1.0`
+- Convert-BAM2FASTQ: `v2.2.0`
+- Align-DNA: `v12.1.0`
+- Generate-SQC-BAM: `v2.1.0`
+- Recalibrate-BAM: `v3.1.0`
+- Call-gSNP: `v13.1.0`
+- Call-sSNV: `v10.1.0`
+- Call-mtSNV: `v7.1.0`
+- Call-gSV: `v6.1.0`
+- Call-sSV: `v9.1.0`
+- Call-sCNA: `v3.1.0`
+- Annotate-VCF: `v2.1.0`
+- Calculate-mtDNA-CopyNumber: `v2.1.0`
+- Calculate-targeted-coverage: `v3.1.0`
+- StableLift: `v3.1.0`
 
 ## [11.1.1] - 2026-11-02
 
